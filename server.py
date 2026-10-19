@@ -742,6 +742,9 @@ def page_index():
 
 @app.route("/<path:filename>", methods=["GET"])
 def page_file(filename):
+    # short addresses without ".html" also work, e.g. /admin → admin.html
+    if filename + ".html" in _PUBLIC_FILES:
+        filename += ".html"
     if filename not in _PUBLIC_FILES:
         abort(404)
     return send_from_directory(_BASE_DIR, filename)
