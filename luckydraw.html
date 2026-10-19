@@ -26,7 +26,7 @@
       display: flex;
       align-items: flex-start;
       justify-content: center;
-      padding: 2rem 1rem 3rem;
+      padding: 2rem 1rem 1.5rem;
       overflow-x: hidden;
       -webkit-tap-highlight-color: transparent;
     }
@@ -54,14 +54,6 @@
       color: var(--gold-soft);
       margin-bottom: 1.25rem;
     }
-    .eyebrow {
-      font-size: 0.72rem;
-      letter-spacing: 0.32em;
-      text-transform: uppercase;
-      color: var(--gold);
-      font-weight: 600;
-      margin-bottom: 0.4rem;
-    }
     h1 {
       font-family: 'Playfair Display', serif;
       font-size: 2.3rem;
@@ -83,7 +75,8 @@
     /* ── Wheel ── */
     .wheel-stage {
       position: relative;
-      width: min(340px, 88vw);
+      width: min(340px, 88vw, calc(100dvh - 22rem));
+      min-width: 220px;
       aspect-ratio: 1;
       margin: 1.5rem auto 1.25rem;
     }
@@ -186,10 +179,25 @@
     }
 
     /* ── Result card ── */
+    .result-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.25rem 1rem;
+      text-align: center;
+      background: hsla(220, 60%, 6%, 0.6);
+      -webkit-backdrop-filter: blur(3px);
+      backdrop-filter: blur(3px);
+    }
+    .result-overlay.on { display: flex; animation: fadeIn 0.35s ease-out; }
     .result {
       display: none;
       position: relative;
-      margin: 0.5rem auto 0;
+      width: 100%;
       max-width: 340px;
       padding: 1.5rem 1.25rem 1.4rem;
       border-radius: 18px;
@@ -227,15 +235,19 @@
       margin-bottom: 0.6rem;
     }
     .prize-how { font-size: 0.88rem; line-height: 1.45; color: hsl(220, 45%, 18%); }
-    .guest { margin-top: 0.9rem; font-size: 0.8rem; opacity: 0.7; }
     .after-note { color: var(--muted); font-size: 0.9rem; margin-top: 1rem; line-height: 1.5; }
     .back-link {
       display: inline-block;
       margin-top: 0.75rem;
+      padding: 0.45rem 1.1rem;
+      border-radius: 999px;
+      background: hsla(220, 55%, 9%, 0.85);
+      border: 1px solid hsla(40, 80%, 55%, 0.35);
       color: var(--gold-soft);
       font-size: 0.9rem;
-      text-decoration: underline;
-      text-underline-offset: 2px;
+      text-decoration: none;
+      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(6px);
     }
 
     .msg-box {
@@ -258,6 +270,7 @@
       animation: spin 0.9s linear infinite;
     }
 
+    @keyframes fadeIn   { from { opacity: 0; } to { opacity: 1; } }
     @keyframes floatIn  { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes popIn    { from { opacity: 0; transform: translateY(24px) scale(0.92); } to { opacity: 1; transform: none; } }
     @keyframes sheen    { 0%, 55% { left: -60%; } 100% { left: 130%; } }
@@ -287,7 +300,6 @@
 
     <!-- Wheel -->
     <div class="view" id="view-wheel">
-      <p class="eyebrow" id="t-eyebrow">Lucky Draw</p>
       <h1 id="t-title">Lucky Wheel</h1>
       <p class="lead" id="t-lead">Spin the wheel — or flick it with your finger! Land on 🎁 to win a prize.</p>
 
@@ -343,25 +355,27 @@
         <div class="msg-box" id="spin-error"></div>
       </div>
 
-      <div class="result" id="result">
-        <div class="result-icon" id="result-icon">🎁</div>
-        <p class="result-title" id="result-title"></p>
-        <p class="result-msg" id="result-msg"></p>
-        <div class="prize">
-          <div class="prize-code" id="prize-code"></div>
-          <p class="prize-how" id="t-prize-how">Show this screen to our front desk staff to receive your gift.</p>
-        </div>
-        <p class="guest" id="guest-name"></p>
-      </div>
-      <p class="after-note" id="after-note"></p>
-      <a class="back-link" id="back-link" href="#" style="display:none">← Back</a>
     </div>
 
     <!-- Error (not registered / offline) -->
     <div class="view" id="view-error">
-      <p class="eyebrow">Lucky Draw</p>
       <div class="msg-box" id="fatal-error" style="display:block"></div>
     </div>
+  </div>
+
+  <!-- Result popup (over the wheel, so the page never needs scrolling) -->
+  <div class="result-overlay" id="result-overlay">
+    <div class="result" id="result">
+      <div class="result-icon" id="result-icon">🎁</div>
+      <p class="result-title" id="result-title"></p>
+      <p class="result-msg" id="result-msg"></p>
+      <div class="prize">
+        <div class="prize-code" id="prize-code"></div>
+        <p class="prize-how" id="t-prize-how">Show this screen to our front desk staff to receive your gift.</p>
+      </div>
+    </div>
+    <p class="after-note" id="after-note"></p>
+    <a class="back-link" id="back-link" href="#">← Back</a>
   </div>
 
   <script>
@@ -385,7 +399,7 @@
           { label: "Next time", title: "So close!",       msg: "Not this time — but good fortune is on its way. Enjoy your stay!" },
         ],
         already: "You have already spun the wheel.",
-        back: "← Back", guest: "Spun by",
+        back: "← Back",
         errNotFound: "We couldn't find your registration. Please register first to join the lucky draw.",
         errOffline: "Could not reach the server. Please check your connection and try again.",
       },
@@ -404,7 +418,7 @@
           { label: "また次回", title: "惜しい！",   msg: "今回は残念でしたが、幸運はもうすぐそこに。素敵なご滞在を！" },
         ],
         already: "ルーレットはすでに回されています。",
-        back: "← 戻る", guest: "",
+        back: "← 戻る",
         errNotFound: "ご登録が見つかりませんでした。先にご登録のうえご参加ください。",
         errOffline: "サーバーに接続できません。接続を確認して、もう一度お試しください。",
       },
@@ -423,7 +437,7 @@
           { label: "다음 기회", title: "아깝네요!",     msg: "이번에는 아쉽지만, 행운이 다가오고 있어요. 즐거운 숙박 되세요!" },
         ],
         already: "이미 룰렛을 돌리셨습니다.",
-        back: "← 돌아가기", guest: "",
+        back: "← 돌아가기",
         errNotFound: "등록 정보를 찾을 수 없습니다. 먼저 등록 후 참여해 주세요.",
         errOffline: "서버에 연결할 수 없습니다. 연결을 확인하고 다시 시도해 주세요.",
       },
@@ -442,7 +456,7 @@
           { label: "下次好运", title: "差一点！",   msg: "这次未中奖，但好运正在路上。祝您入住愉快！" },
         ],
         already: "您已经转过转盘了。",
-        back: "← 返回", guest: "",
+        back: "← 返回",
         errNotFound: "未找到您的注册信息。请先注册后再参加抽奖。",
         errOffline: "无法连接到服务器。请检查网络后重试。",
       },
@@ -463,7 +477,6 @@
     }
 
     // ── Static texts ──────────────────────────────────────────────────
-    $("t-eyebrow").textContent   = t.eyebrow;
     $("t-title").textContent     = t.title;
     $("t-lead").textContent      = t.lead;
     $("t-btn").textContent       = t.btn;
@@ -660,11 +673,9 @@
         $("result-title").textContent = t.fortunes[f].title;
         $("result-msg").textContent   = t.fortunes[f].msg;
       }
-      $("guest-name").textContent = (t.guest ? t.guest + " " : "") + (r.name || nombre);
       $("after-note").textContent = already ? t.already : "";
       card.classList.add("on");
-      $("back-link").style.display = "inline-block";
-      setTimeout(() => card.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" }), 150);
+      $("result-overlay").classList.add("on");
       if (r.won) fx.burst();
     }
 
