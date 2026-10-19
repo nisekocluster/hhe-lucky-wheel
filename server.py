@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory, abort
 from flask_cors import CORS
 import psycopg2, psycopg2.extras, os, traceback, re, hmac, time, secrets
 
@@ -727,6 +727,24 @@ def set_wifi_password():
 @app.route("/health", methods=["GET"])
 def health():
     return jsonify({"status": "ok"})
+
+
+# ── Web pages ──────────────────────────────────────────────────────────
+#    Railway also serves the guest/admin pages. Only the files listed here
+#    are public, so server.py and other project files are never exposed.
+_BASE_DIR     = os.path.dirname(os.path.abspath(__file__))
+_PUBLIC_FILES = {"index.html", "ticket.html", "luckydraw.html", "media.html",
+                 "admin.html", "Steps.png", "ticket-cheers.png"}
+
+@app.route("/", methods=["GET"])
+def page_index():
+    return send_from_directory(_BASE_DIR, "index.html")
+
+@app.route("/<path:filename>", methods=["GET"])
+def page_file(filename):
+    if filename not in _PUBLIC_FILES:
+        abort(404)
+    return send_from_directory(_BASE_DIR, filename)
 
 
 # ── Startup ────────────────────────────────────────────────────────────
