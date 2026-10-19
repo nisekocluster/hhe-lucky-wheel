@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hilton Niseko Village – Hilton Honors Registration</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --navy: hsl(220, 55%, 14%);
+      --navy-mid: hsl(220, 45%, 18%);
+      --navy-light: hsl(220, 35%, 24%);
+      --navy-border: hsl(220, 30%, 28%);
+      --gold: hsl(40, 80%, 55%);
+      --gold-light: hsl(40, 90%, 70%);
+      --gold-dim: hsla(40, 80%, 55%, 0.15);
+      --cream: hsl(40, 50%, 94%);
+      --muted: hsl(220, 20%, 55%);
+      --error: hsl(0, 75%, 60%);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--navy);
+      color: var(--cream);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 2.5rem 1rem 0;
+    }
+
+    h1, h2, h3 { font-family: 'Playfair Display', serif; }
+
+    .wrapper {
+      width: 100%;
+      max-width: 520px;
+      animation: floatIn 0.6s ease-out;
+    }
+
+    /* ── Language Switcher ── */
+    .lang-switcher {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.35rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .lang-btn {
+      background: transparent;
+      border: 1px solid var(--navy-border);
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      padding: 0.3rem 0.6rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+    }
+
+    .lang-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold-light);
+    }
+
+    .lang-btn.active {
+      border-color: var(--gold);
+      color: var(--navy);
+      background: var(--gold);
+      font-weight: 600;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .hotel-eyebrow {
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--gold);
+      font-weight: 500;
+      margin-bottom: 0.75rem;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--cream);
+      margin-bottom: 0.4rem;
+      line-height: 1.15;
+    }
+
+    .header p {
+      color: var(--muted);
+      font-size: 0.875rem;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: linear-gradient(160deg, var(--navy-mid), var(--navy));
+      border: 1px solid var(--navy-border);
+      border-radius: 18px;
+      padding: 2rem;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--cream);
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--navy-border);
+    }
+
+    /* ── Form ── */
+    .field-group { margin-bottom: 1.25rem; }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.875rem;
+      margin-bottom: 1.25rem;
+    }
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--cream);
+      margin-bottom: 0.4rem;
+    }
+
+    label .req {
+      font-size: 0.75rem;
+      color: var(--gold);
+      font-style: italic;
+      font-weight: 400;
+    }
+
+    input, select {
+      width: 100%;
+      height: 46px;
+      padding: 0 1rem;
+      border-radius: 10px;
+      border: 1px solid var(--navy-border);
+      background: hsl(220, 40%, 11%);
+      color: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9375rem;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      padding-right: 2.5rem;
+      cursor: pointer;
+    }
+
+    input::placeholder { color: hsl(220, 20%, 38%); }
+    select option { background: hsl(220, 45%, 15%); }
+
+    input:focus, select:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px var(--gold-dim);
+    }
+
+    .sub-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+    }
+
+    /* ── Privacy ── */
+    .privacy {
+      background: hsla(220, 40%, 10%, 0.6);
+      border: 1px solid var(--navy-border);
+      border-radius: 10px;
+      padding: 1rem 1.125rem;
+      font-size: 0.78rem;
+      line-height: 1.65;
+      color: hsl(220, 15%, 55%);
+      margin-bottom: 1.5rem;
+    }
+
+    .privacy a {
+      color: var(--gold-light);
+      text-decoration: underline;
+      text-decoration-color: hsla(40, 80%, 65%, 0.4);
+    }
+
+    .privacy a:hover { color: var(--gold); }
+
+    /* ── Error ── */
+    .error {
+      background: hsla(0, 75%, 55%, 0.12);
+      border: 1px solid hsla(0, 75%, 55%, 0.4);
+      color: hsl(0, 85%, 70%);
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      margin-bottom: 1rem;
+      font-size: 0.875rem;
+      display: none;
+    }
+
+    /* ── Button ── */
+    button[type="submit"] {
+      width: 100%;
+      height: 52px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--gold), hsl(30, 90%, 45%));
+      color: var(--navy);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+
+    button[type="submit"]:hover { opacity: 0.92; transform: translateY(-1px); }
+    button[type="submit"]:active { transform: translateY(0); opacity: 1; }
+
+
+    @keyframes floatIn {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Tablet (max 640px) ── */
+    @media (max-width: 640px) {
+      body {
+        padding: 1.5rem 0.75rem 2rem;
+        align-items: flex-start;
+      }
+
+      .wrapper {
+        max-width: 100%;
+      }
+
+      .lang-switcher {
+        gap: 0.25rem;
+        margin-bottom: 1.25rem;
+      }
+
+      .lang-btn {
+        font-size: 0.7rem;
+        padding: 0.28rem 0.5rem;
+      }
+
+      .header h1 {
+        font-size: 1.6rem;
+      }
+
+      .header p {
+        font-size: 0.825rem;
+      }
+
+      .card {
+        padding: 1.5rem 1.125rem;
+        border-radius: 14px;
+      }
+
+      .section-title {
+        font-size: 1rem;
+      }
+
+      /* Stack first/last name on mobile */
+      .field-row {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+      }
+
+      input, select {
+        height: 50px;          /* easier tap target */
+        font-size: 1rem;       /* prevents iOS auto-zoom (must be ≥16px) */
+      }
+
+      button[type="submit"] {
+        height: 54px;
+        font-size: 1rem;
+      }
+
+    }
+
+    /* ── Small phones (max 380px) ── */
+    @media (max-width: 380px) {
+      .header h1 {
+        font-size: 1.35rem;
+      }
+
+      .card {
+        padding: 1.25rem 1rem;
+      }
+
+      .lang-btn {
+        font-size: 0.65rem;
+        padding: 0.25rem 0.45rem;
+      }
+    }
+
+    /* ── Site footer ── */
+    .site-footer {
+      width: 100%;
+      max-width: 520px;
+      margin-top: 3rem;
+      padding: 1.5rem 0 2rem;
+      border-top: 1px solid hsla(40, 30%, 60%, 0.08);
+      text-align: center;
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      color: hsla(40, 30%, 80%, 0.4);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+
+    <!-- Language Switcher -->
+    <div class="lang-switcher">
+      <button class="lang-btn active" data-lang="en" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" data-lang="ja" onclick="setLang('ja')">日本語</button>
+      <button class="lang-btn" data-lang="ko" onclick="setLang('ko')">한국어</button>
+      <button class="lang-btn" data-lang="zh" onclick="setLang('zh')">中文</button>
+    </div>
+
+    <div class="header">
+      <div class="hotel-eyebrow">Hilton Niseko Village</div>
+      <h1 data-i18n="title">Join Hilton Honors</h1>
+      <p data-i18n="subtitle">All fields are required unless marked optional.</p>
+    </div>
+
+    <div id="error" class="error"></div>
+
+    <div class="card">
+      <p class="section-title" data-i18n="title">Join Hilton Honors</p>
+
+      <form id="ticketForm">
+
+        <div class="field-row">
+          <div>
+            <label><span data-i18n="firstName">First Name</span> <span class="req" data-i18n="required">(Required)</span></label>
+            <input type="text" id="firstName" required>
+          </div>
+          <div>
+            <label><span data-i18n="lastName">Last Name</span> <span class="req" data-i18n="required">(Required)</span></label>
+            <input type="text" id="lastName" required>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label><span data-i18n="phone">Phone</span> <span class="req" data-i18n="required">(Required)</span></label>
+          <input type="tel" id="phone" required>
+        </div>
+
+        <div class="field-group">
+          <label><span data-i18n="email">Email</span> <span class="req" data-i18n="required">(Required)</span></label>
+          <input type="email" id="correo" required>
+        </div>
+
+        <div class="field-group">
+          <label><span data-i18n="country">Country / Region</span> <span class="req" data-i18n="required">(Required)</span></label>
+          <input type="text" id="country" required>
+        </div>
+
+        <div class="privacy">
+          <span data-i18n="privacyText">By clicking Submit, I agree to the</span>
+          <a href="https://www.hilton.com/en/hilton-honors/terms/" target="_blank" data-i18n="privacyTerms">Hilton Honors Program Terms and Conditions</a>,
+          <span data-i18n="privacyAnd">and I agree to the collection, use, sharing and transfer of information as set out in the</span>
+          <a href="https://www.hilton.com/en/hilton-honors/privacy-policy/" target="_blank" data-i18n="privacyPolicy">Hilton Global Privacy Statement</a>.
+          <span data-i18n="privacyOffers">I also agree to receive special offers and promotions from Hilton via email and direct mail.</span>
+          <span data-i18n="privacyUnsubscribe">I understand that I can unsubscribe from offers and promotions by changing my subscription preferences in my Hilton Honors profile.</span>
+          <a href="https://www.hilton.com/en/hilton-honors/california-privacy/" target="_blank" data-i18n="privacyCalifornia">California Consumers, learn about</a>
+          <span data-i18n="privacyCaliforniaEnd">Hilton's collection and use of your personal information.</span>
+        </div>
+
+        <button type="submit" data-i18n="submit">Submit</button>
+
+      </form>
+    </div>
+
+  </div>
+
+  <footer class="site-footer">
+    &copy; 2026 YOB&AIM &middot; All rights reserved
+  </footer>
+
+  <script>
+    // ─────────────────────────────────────────────────────────────────
+    // 🔧 CONFIGURACIÓN — Cambia esta URL por la de tu proyecto Railway
+    //    Ejemplo: "https://hilton-niseko-api.up.railway.app"
+    // ─────────────────────────────────────────────────────────────────
+    const API_URL = "https://hhe-production.up.railway.app";
+
+    const translations = {
+      en: {
+        title: "Join Hilton Honors",
+        subtitle: "All fields are required unless marked optional.",
+        room: "Room Number",
+        required: "(Required)",
+        firstName: "First Name",
+        lastName: "Last Name",
+        phone: "Phone",
+        email: "Email",
+        country: "Country / Region",
+        zip: "ZIP / Postal Code",
+        submit: "Submit",
+        privacyText: "By clicking Submit, I agree to the",
+        privacyTerms: "Hilton Honors Program Terms and Conditions",
+        privacyAnd: "and I agree to the collection, use, sharing and transfer of information as set out in the",
+        privacyPolicy: "Hilton Global Privacy Statement",
+        privacyOffers: "I also agree to receive special offers and promotions from Hilton via email and direct mail.",
+        privacyUnsubscribe: "I understand that I can unsubscribe from offers and promotions by changing my subscription preferences in my Hilton Honors profile.",
+        privacyCalifornia: "California Consumers, learn about",
+        privacyCaliforniaEnd: "Hilton's collection and use of your personal information.",
+        errorRequired: "Please complete all required fields.",
+        errorUsedName: "This name has already been registered.",
+        errorUsedEmail: "This email address has already been registered.",
+        errorUsed: "This name and email have already been registered.",
+        errorServer: "Server error. Please try again.",
+        errorOffline: "Could not reach server. Please check your connection.",
+        submitting: "Submitting…",
+      },
+      ja: {
+        title: "ヒルトン・オナーズへのご入会",
+        subtitle: "特に記載のない限り、すべての項目は必須です。",
+        room: "部屋番号",
+        required: "（必須）",
+        lastName: "名 (半角ローマ字）",
+        firstName: "姓 (半角ローマ字）",
+        phone: "携帯電話番号",
+        email: "メールアドレス",
+        country: "国 / 地域 (半角ローマ字）",
+        zip: "郵便番号",
+        submit: "送信",
+        privacyText: "送信をクリックすることで、",
+        privacyTerms: "ヒルトン・オナーズ プログラム利用規約",
+        privacyAnd: "に同意し、",
+        privacyPolicy: "ヒルトン グローバル プライバシーポリシー",
+        privacyOffers: "に記載された情報の収集、使用、共有、転送に同意します。また、Hiltonからのメールおよびダイレクトメールによる特別オファーやプロモーションの受信に同意します。",
+        privacyUnsubscribe: "ヒルトン・オナーズのプロフィールで購読設定を変更することで、オファーやプロモーションの配信を停止できることを了承します。",
+        privacyCalifornia: "カリフォルニア州の消費者の方はこちら",
+        privacyCaliforniaEnd: "Hiltonによる個人情報の収集と利用について。",
+        errorRequired: "すべての必須項目を入力してください。",
+        errorUsedName: "この氏名はすでに登録済みです。",
+        errorUsedEmail: "このメールアドレスはすでに登録済みです。",
+        errorUsed: "この氏名とメールアドレスはすでに登録済みです。",
+        errorServer: "サーバーエラーが発生しました。もう一度お試しください。",
+        errorOffline: "サーバーに接続できません。接続を確認してください。",
+        submitting: "送信中…",
+      },
+      ko: {
+        title: "힐튼 Honors에 가입하세요",
+        subtitle: "선택 사항으로 표시되지 않은 모든 항목은 필수입니다.",
+        room: "객실 번호",
+        required: "(필수)",
+        firstName: "성 (영문)",
+        lastName: "이름 (영문)",
+        phone: "휴대폰 번호",
+        email: "이메일",
+        country: "국가 / 지역　(영문)",
+        zip: "우편번호",
+        submit: "제출",
+        privacyText: "제출을 클릭하면",
+        privacyTerms: "힐튼 Honors에 프로그램 이용약관",
+        privacyAnd: "에 동의하고,",
+        privacyPolicy: "힐튼 글로벌 개인정보 처리방침",
+        privacyOffers: "에 명시된 정보의 수집, 사용, 공유 및 전송에 동의합니다. 또한 힐튼으로부터 이메일 및 직접 우편을 통한 특별 혜택 및 프로모션 수신에 동의합니다.",
+        privacyUnsubscribe: "힐튼 Honors에 프로필에서 구독 설정을 변경하여 혜택 및 프로모션 수신을 거부할 수 있음을 이해합니다.",
+        privacyCalifornia: "캘리포니아 소비자 안내",
+        privacyCaliforniaEnd: "힐튼의 개인정보 수집 및 이용에 관하여.",
+        errorRequired: "모든 필수 항목을 입력해 주세요.",
+        errorUsedName: "이 이름은 이미 등록되었습니다.",
+        errorUsedEmail: "이 이메일은 이미 등록되었습니다.",
+        errorUsed: "이 이름과 이메일은 이미 등록되었습니다.",
+        errorServer: "서버 오류가 발생했습니다. 다시 시도해 주세요.",
+        errorOffline: "서버에 연결할 수 없습니다. 연결을 확인하세요.",
+        submitting: "제출 중…",
+      },
+      zh: {
+        title: "加入希尔顿荣誉客会",
+        subtitle: "除非为可选项，否则所有字段为必填项。",
+        room: "房间号",
+        required: "（必填）",
+        firstName: "名字（半角罗马字）",
+        lastName: "姓氏（半角罗马字）",
+        phone: "电话号码",
+        email: "电子邮箱",
+        country: "国家 / 地区（半角罗马字）",
+        zip: "邮政编码",
+        submit: "提交",
+        privacyText: "点击提交即表示我同意",
+        privacyTerms: "希尔顿荣誉客会计划条款与条件",
+        privacyAnd: "，并同意按照",
+        privacyPolicy: "希尔顿全球隐私声明",
+        privacyOffers: "中所述收集、使用、共享和传输信息。我还同意通过电子邮件和直邮接收希尔顿的特别优惠和促销信息。",
+        privacyUnsubscribe: "我了解可以通过更改希尔顿荣誉客会个人资料中的订阅设置来退订优惠和促销信息。",
+        privacyCalifornia: "加利福尼亚州消费者，了解",
+        privacyCaliforniaEnd: "希尔顿对您个人信息的收集和使用。",
+        errorRequired: "请填写所有必填字段。",
+        errorUsedName: "该姓名已被注册。",
+        errorUsedEmail: "该电子邮箱已被注册。",
+        errorUsed: "该姓名和电子邮箱已被注册。",
+        errorServer: "服务器错误，请重试。",
+        errorOffline: "无法连接到服务器，请检查您的网络连接。",
+        submitting: "提交中…",
+      },
+      fr: {
+        title: "Rejoignez Hilton Honors",
+        subtitle: "Tous les champs sont obligatoires sauf indication contraire.",
+        room: "Numéro de chambre",
+        required: "(Obligatoire)",
+        firstName: "Prénom",
+        lastName: "Nom de famille",
+        phone: "Téléphone",
+        email: "Adresse e-mail",
+        country: "Pays / Région",
+        zip: "Code postal",
+        submit: "Soumettre",
+        privacyText: "En cliquant sur Soumettre, j'accepte les",
+        privacyTerms: "Conditions du programme Hilton Honors",
+        privacyAnd: "et j'accepte la collecte, l'utilisation, le partage et le transfert d'informations tels que définis dans la",
+        privacyPolicy: "Déclaration de confidentialité mondiale de Hilton",
+        privacyOffers: "J'accepte également de recevoir des offres spéciales et des promotions de Hilton par e-mail et courrier.",
+        privacyUnsubscribe: "Je comprends que je peux me désabonner des offres et promotions en modifiant mes préférences d'abonnement dans mon profil Hilton Honors.",
+        privacyCalifornia: "Consommateurs californiens, renseignez-vous sur",
+        privacyCaliforniaEnd: "la collecte et l'utilisation de vos informations personnelles par Hilton.",
+        errorRequired: "Veuillez remplir tous les champs obligatoires.",
+        errorUsedName: "Ce nom a déjà été enregistré.",
+        errorUsedEmail: "Cette adresse e-mail a déjà été enregistrée.",
+        errorUsed: "Ce nom et cet e-mail ont déjà été enregistrés.",
+        errorServer: "Erreur serveur. Veuillez réessayer.",
+        errorOffline: "Impossible de contacter le serveur. Vérifiez votre connexion.",
+        submitting: "Envoi en cours…",
+      },
+      es: {
+        title: "Únete a Hilton Honors",
+        subtitle: "Todos los campos son obligatorios salvo indicación contraria.",
+        room: "Número de habitación",
+        required: "(Requerido)",
+        firstName: "Nombre",
+        lastName: "Apellido",
+        phone: "Teléfono",
+        email: "Correo electrónico",
+        country: "País / Región",
+        zip: "Código postal",
+        submit: "Enviar",
+        privacyText: "Al hacer clic en Enviar, acepto los",
+        privacyTerms: "Términos y condiciones del programa Hilton Honors",
+        privacyAnd: "y acepto la recopilación, uso, intercambio y transferencia de información según lo establecido en la",
+        privacyPolicy: "Declaración de privacidad global de Hilton",
+        privacyOffers: "También acepto recibir ofertas especiales y promociones de Hilton por correo electrónico y correo postal.",
+        privacyUnsubscribe: "Entiendo que puedo darme de baja de las ofertas y promociones cambiando mis preferencias de suscripción en mi perfil de Hilton Honors.",
+        privacyCalifornia: "Consumidores de California, conozca",
+        privacyCaliforniaEnd: "la recopilación y el uso de su información personal por parte de Hilton.",
+        errorRequired: "Por favor, completa todos los campos requeridos.",
+        errorUsedName: "Este nombre ya ha sido registrado.",
+        errorUsedEmail: "Este correo electrónico ya ha sido registrado.",
+        errorUsed: "Este nombre y correo electrónico ya han sido registrados.",
+        errorServer: "Error del servidor. Por favor, inténtalo de nuevo.",
+        errorOffline: "No se puede conectar al servidor. Verifica tu conexión.",
+        submitting: "Enviando…",
+      }
+    };
+
+    let currentLang = 'en';
+
+    function setLang(lang) {
+      currentLang = lang;
+      const t = translations[lang];
+      // Only update leaf elements — elements whose children are NOT also i18n targets.
+      // This prevents a parent label from wiping out its nested span children.
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (!t[key]) return;
+        const hasI18nChild = el.querySelector('[data-i18n]');
+        if (hasI18nChild) return; // skip containers, only update leaves
+        el.textContent = t[key];
+      });
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+      });
+      document.documentElement.lang = lang;
+    }
+
+
+    // ── Latin-only input filter ────────────────────────────────────────
+    // Allows: a-z, A-Z, accented/diacritic latin chars, spaces, hyphens, apostrophes
+    const LATIN_REGEX = /^[A-Za-zÀ-ɏ\s\-\'\u2019\.]*$/;
+
+    function enforceLatin(input) {
+      input.addEventListener("input", function () {
+        const val = this.value;
+        if (!LATIN_REGEX.test(val)) {
+          // Remove any non-latin character typed
+          this.value = [...val].filter(ch => LATIN_REGEX.test(ch)).join("");
+          this.style.borderColor = "var(--error)";
+          setTimeout(() => this.style.borderColor = "", 600);
+        }
+      });
+    }
+
+    enforceLatin(document.getElementById("firstName"));
+    enforceLatin(document.getElementById("lastName"));
+    enforceLatin(document.getElementById("country"));
+
+    // ── localStorage helpers ───────────────────────────────────────────
+    function getRegistrations() {
+      try { return JSON.parse(localStorage.getItem("hnv_registrations") || "[]"); }
+      catch { return []; }
+    }
+    function saveRegistration(firstName, lastName, email) {
+      const list = getRegistrations();
+      list.push({ name: (firstName + " " + lastName).toLowerCase(), email: email.toLowerCase() });
+      localStorage.setItem("hnv_registrations", JSON.stringify(list));
+    }
+    function checkDuplicate(firstName, lastName, email) {
+      const fullName = (firstName + " " + lastName).toLowerCase();
+      const lowerEmail = email.toLowerCase();
+      const list = getRegistrations();
+      const nameTaken  = list.some(r => r.name  === fullName);
+      const emailTaken = list.some(r => r.email === lowerEmail);
+      return { nameTaken, emailTaken };
+    }
+
+    document.getElementById("ticketForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const t = translations[currentLang];
+      const errorEl = document.getElementById("error");
+      const submitBtn = document.querySelector("button[type='submit']");
+      errorEl.style.display = "none";
+
+      const firstName = document.getElementById("firstName").value.trim();
+      const lastName  = document.getElementById("lastName").value.trim();
+      const correo    = document.getElementById("correo").value.trim().toLowerCase();
+      const phone     = document.getElementById("phone").value.trim();
+      const country   = document.getElementById("country").value.trim();
+
+      if (!firstName || !lastName || !correo || !phone || !country) {
+        errorEl.textContent = t.errorRequired;
+        errorEl.style.display = "block";
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+
+      // ── Dual duplicate check (localStorage) ──────────────────────────
+      const { nameTaken, emailTaken } = checkDuplicate(firstName, lastName, correo);
+      if (nameTaken && emailTaken) {
+        errorEl.textContent = t.errorUsed;
+        errorEl.style.display = "block";
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+      if (nameTaken) {
+        errorEl.textContent = t.errorUsedName;
+        errorEl.style.display = "block";
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+      if (emailTaken) {
+        errorEl.textContent = t.errorUsedEmail;
+        errorEl.style.display = "block";
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = t.submitting || "...";
+
+      try {
+        const res = await fetch(`${API_URL}/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ firstName, lastName, email: correo, phone, country, lang: currentLang })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          if (res.status === 409) {
+            // Server-side duplicate — determine which field caused it if possible
+            const msg = (data.field === "email") ? t.errorUsedEmail
+                      : (data.field === "name")  ? t.errorUsedName
+                      : t.errorUsed;
+            errorEl.textContent = msg;
+          } else {
+            errorEl.textContent = t.errorServer;
+          }
+          errorEl.style.display = "block";
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          submitBtn.disabled = false;
+          submitBtn.textContent = t.submit;
+          return;
+        }
+
+        // ── Success: save to localStorage before redirecting ──────────
+        saveRegistration(firstName, lastName, correo);
+
+        const nombre = firstName + " " + lastName;
+        window.location.href =
+          "ticket.html?nombre=" + encodeURIComponent(nombre) +
+          "&correo=" + encodeURIComponent(correo) +
+          "&lang=" + encodeURIComponent(currentLang);
+
+      } catch (err) {
+        errorEl.textContent = t.errorOffline;
+        errorEl.style.display = "block";
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        submitBtn.disabled = false;
+        submitBtn.textContent = t.submit;
+      }
+    });
+  </script>
+</body>
+</html>

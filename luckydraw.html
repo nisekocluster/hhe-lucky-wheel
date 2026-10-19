@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hilton Niseko Village - Lucky Draw</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --navy: hsl(220, 55%, 14%);
+      --navy-deep: hsl(220, 55%, 9%);
+      --gold: hsl(40, 80%, 55%);
+      --gold-soft: hsl(40, 60%, 65%);
+      --gold-light: hsl(40, 90%, 72%);
+      --cream: hsl(40, 50%, 95%);
+      --muted: hsl(220, 15%, 58%);
+    }
+    html, body { height: 100%; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: radial-gradient(ellipse at 50% 0%, hsl(220, 45%, 22%) 0%, var(--navy) 55%, var(--navy-deep) 100%);
+      background-attachment: fixed;
+      color: var(--cream);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 1rem 3rem;
+      overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #fx {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 3;
+    }
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      animation: floatIn 0.6s ease-out;
+    }
+    .hotel-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gold-soft);
+      margin-bottom: 1.25rem;
+    }
+    .eyebrow {
+      font-size: 0.72rem;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: var(--gold);
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.3rem;
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 0.6rem;
+    }
+    .lead {
+      color: var(--muted);
+      font-size: 0.96rem;
+      line-height: 1.5;
+      max-width: 340px;
+      margin: 0 auto;
+    }
+
+    .view { display: none; }
+    .view.on { display: block; animation: floatIn 0.5s ease-out; }
+
+    /* ── Wheel ── */
+    .wheel-stage {
+      position: relative;
+      width: min(340px, 88vw);
+      aspect-ratio: 1;
+      margin: 1.5rem auto 1.25rem;
+    }
+    .wheel-stage::before {
+      content: "";
+      position: absolute;
+      inset: -6%;
+      border-radius: 50%;
+      background: radial-gradient(circle, hsla(40, 80%, 55%, 0.22), transparent 65%);
+      pointer-events: none;
+    }
+    #wheel-svg {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: block;
+      overflow: visible;
+      touch-action: none;
+      cursor: grab;
+      -webkit-user-select: none;
+      user-select: none;
+      filter: drop-shadow(0 18px 30px hsla(220, 60%, 4%, 0.6));
+    }
+    #wheel-svg.locked { cursor: default; }
+    #wheel-svg.dragging { cursor: grabbing; }
+    .seg-label {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+    }
+    .seg-icon { font-size: 21px; }
+    .hit-glow {
+      fill: none;
+      stroke: hsl(0, 0%, 100%);
+      stroke-width: 4;
+      opacity: 0;
+    }
+    .hit-glow.on { animation: hitPulse 0.9s ease-in-out infinite; }
+
+    .bulb { fill: hsl(40, 90%, 72%); animation: bulb 1.2s ease-in-out infinite; }
+    .bulb.alt { animation-delay: -0.6s; }
+    .spinning .bulb { animation-duration: 0.3s; }
+
+    #pointer {
+      transform-box: fill-box;
+      transform-origin: 50% 20%;
+      transition: transform 0.12s ease-out;
+    }
+    #pointer.tick { transform: rotate(-22deg); transition: transform 0.04s; }
+
+    .hub { cursor: pointer; }
+    .hub-text {
+      font-family: 'Playfair Display', serif;
+      font-weight: 800;
+      font-size: 15px;
+      letter-spacing: 0.08em;
+      fill: hsl(220, 55%, 14%);
+      pointer-events: none;
+    }
+
+    .btn-spin {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      min-width: 240px;
+      height: 54px;
+      padding: 0 1.75rem;
+      border: none;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold) 45%, hsl(30, 90%, 45%));
+      color: var(--navy);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      overflow: hidden;
+      box-shadow: 0 8px 26px hsla(40, 80%, 50%, 0.35);
+      transition: transform 0.15s, opacity 0.2s;
+    }
+    .btn-spin::after {
+      content: "";
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 40%;
+      left: -60%;
+      background: linear-gradient(100deg, transparent, hsla(0, 0%, 100%, 0.55), transparent);
+      animation: sheen 2.8s ease-in-out infinite;
+    }
+    .btn-spin:active { transform: scale(0.97); }
+    .btn-spin:disabled { opacity: 0.55; cursor: default; }
+    .btn-spin:disabled::after { display: none; }
+    .fine {
+      color: hsl(220, 15%, 46%);
+      font-size: 0.82rem;
+      margin-top: 0.9rem;
+    }
+
+    /* ── Result card ── */
+    .result {
+      display: none;
+      position: relative;
+      margin: 0.5rem auto 0;
+      max-width: 340px;
+      padding: 1.5rem 1.25rem 1.4rem;
+      border-radius: 18px;
+      background: linear-gradient(160deg, hsl(220, 45%, 20%), hsl(220, 55%, 13%));
+      border: 1px solid hsla(40, 80%, 55%, 0.3);
+      box-shadow: 0 20px 45px hsla(220, 60%, 4%, 0.5);
+    }
+    .result.on { display: block; animation: popIn 0.55s cubic-bezier(.2, .9, .3, 1.25); }
+    .result.win {
+      background: linear-gradient(160deg, hsl(40, 85%, 62%), hsl(34, 88%, 50%));
+      border-color: hsl(40, 90%, 75%);
+      color: var(--navy);
+    }
+    .result-icon { font-size: 2.6rem; line-height: 1; margin-bottom: 0.5rem; }
+    .result-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.55rem;
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 0.4rem;
+    }
+    .result-msg { font-size: 0.98rem; line-height: 1.5; color: var(--muted); }
+    .result.win .result-msg { color: hsl(220, 45%, 18%); }
+    .prize { display: none; margin-top: 1rem; }
+    .result.win .prize { display: block; }
+    .prize-code {
+      display: inline-block;
+      font-size: 1.55rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      padding: 0.45rem 1rem;
+      border-radius: 10px;
+      background: var(--navy);
+      color: var(--gold-light);
+      margin-bottom: 0.6rem;
+    }
+    .prize-how { font-size: 0.88rem; line-height: 1.45; color: hsl(220, 45%, 18%); }
+    .guest { margin-top: 0.9rem; font-size: 0.8rem; opacity: 0.7; }
+    .after-note { color: var(--muted); font-size: 0.9rem; margin-top: 1rem; line-height: 1.5; }
+    .back-link {
+      display: inline-block;
+      margin-top: 0.75rem;
+      color: var(--gold-soft);
+      font-size: 0.9rem;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .msg-box {
+      margin-top: 1.25rem;
+      background: hsla(0, 75%, 55%, 0.12);
+      border: 1px solid hsla(0, 75%, 55%, 0.4);
+      color: hsl(0, 85%, 72%);
+      padding: 0.85rem 1rem;
+      border-radius: 10px;
+      font-size: 0.92rem;
+      display: none;
+    }
+    .spinner {
+      width: 34px;
+      height: 34px;
+      margin: 3rem auto;
+      border: 3px solid hsla(40, 80%, 55%, 0.2);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes floatIn  { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes popIn    { from { opacity: 0; transform: translateY(24px) scale(0.92); } to { opacity: 1; transform: none; } }
+    @keyframes sheen    { 0%, 55% { left: -60%; } 100% { left: 130%; } }
+    @keyframes bulb     { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+    @keyframes hitPulse { 0%, 100% { opacity: 0.15; } 50% { opacity: 0.95; } }
+    @keyframes spin     { to { transform: rotate(360deg); } }
+
+    @media (max-width: 480px) {
+      body { padding-top: 2.25rem; }
+      h1 { font-size: 2rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .bulb, .btn-spin::after { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="fx"></canvas>
+
+  <div class="wrapper">
+    <p class="hotel-name">Hilton Niseko Village</p>
+
+    <!-- Loading -->
+    <div class="view on" id="view-loading">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Wheel -->
+    <div class="view" id="view-wheel">
+      <p class="eyebrow" id="t-eyebrow">Lucky Draw</p>
+      <h1 id="t-title">Lucky Wheel</h1>
+      <p class="lead" id="t-lead">Spin the wheel — or flick it with your finger! Land on 🎁 to win a prize.</p>
+
+      <div class="wheel-stage">
+        <svg id="wheel-svg" viewBox="-170 -178 340 348" aria-hidden="true">
+          <defs>
+            <linearGradient id="g-gold" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="hsl(40, 92%, 72%)"/>
+              <stop offset="0.5" stop-color="hsl(40, 82%, 56%)"/>
+              <stop offset="1" stop-color="hsl(32, 90%, 46%)"/>
+            </linearGradient>
+            <radialGradient id="g-hub" cx="0.4" cy="0.35" r="0.8">
+              <stop offset="0" stop-color="hsl(40, 95%, 80%)"/>
+              <stop offset="1" stop-color="hsl(36, 85%, 48%)"/>
+            </radialGradient>
+            <radialGradient id="g-shade" cx="0.5" cy="0.5" r="0.5">
+              <stop offset="0.6" stop-color="hsla(220, 60%, 5%, 0)"/>
+              <stop offset="1" stop-color="hsla(220, 60%, 5%, 0.35)"/>
+            </radialGradient>
+          </defs>
+
+          <!-- rim -->
+          <circle r="163" fill="hsl(220, 50%, 11%)"/>
+          <circle r="163" fill="none" stroke="url(#g-gold)" stroke-width="3"/>
+          <circle r="146" fill="none" stroke="url(#g-gold)" stroke-width="2"/>
+          <g id="bulbs"></g>
+
+          <!-- rotating wheel -->
+          <g id="wheel">
+            <g id="segments"></g>
+            <path id="hit-glow" class="hit-glow" d=""/>
+          </g>
+          <circle r="145" fill="url(#g-shade)" pointer-events="none"/>
+
+          <!-- hub -->
+          <g class="hub" id="hub">
+            <circle r="40" fill="hsl(220, 50%, 11%)"/>
+            <circle r="35" fill="url(#g-hub)" stroke="hsl(40, 90%, 80%)" stroke-width="1.5"/>
+            <text class="hub-text" id="hub-text" text-anchor="middle" dominant-baseline="central" y="1">SPIN</text>
+          </g>
+
+          <!-- pointer -->
+          <g id="pointer">
+            <path d="M0,-140 L-15,-170 Q0,-180 15,-170 Z" fill="url(#g-gold)" stroke="hsl(220, 55%, 10%)" stroke-width="2"/>
+            <circle cy="-166" r="5" fill="hsl(220, 55%, 12%)"/>
+          </g>
+        </svg>
+      </div>
+
+      <div id="spin-area">
+        <button type="button" class="btn-spin" id="btn-spin">✦ <span id="t-btn">Spin the wheel</span></button>
+        <p class="fine" id="t-fine">One spin per registration.</p>
+        <div class="msg-box" id="spin-error"></div>
+      </div>
+
+      <div class="result" id="result">
+        <div class="result-icon" id="result-icon">🎁</div>
+        <p class="result-title" id="result-title"></p>
+        <p class="result-msg" id="result-msg"></p>
+        <div class="prize">
+          <div class="prize-code" id="prize-code"></div>
+          <p class="prize-how" id="t-prize-how">Show this screen to our front desk staff to receive your gift.</p>
+        </div>
+        <p class="guest" id="guest-name"></p>
+      </div>
+      <p class="after-note" id="after-note"></p>
+      <a class="back-link" id="back-link" href="#" style="display:none">← Back</a>
+    </div>
+
+    <!-- Error (not registered / offline) -->
+    <div class="view" id="view-error">
+      <p class="eyebrow">Lucky Draw</p>
+      <div class="msg-box" id="fatal-error" style="display:block"></div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "https://hhe-production.up.railway.app";
+
+    // ── Texts ─────────────────────────────────────────────────────────
+    //    fortunes[0..3] must match _FORTUNES in server.py.
+    const i18n = {
+      en: {
+        eyebrow: "Lucky Draw", title: "Lucky Wheel",
+        lead: "Spin the wheel — or flick it with your finger! Land on 🎁 to win a prize.",
+        btn: "Spin the wheel", spinning: "Good luck…", hub: "SPIN",
+        fine: "One spin per registration.",
+        prize: "PRIZE", winTitle: "You won a prize!",
+        winMsg: "Congratulations — today is your lucky day in Niseko!",
+        prizeHow: "Show this screen to our front desk staff to receive your gift.",
+        fortunes: [
+          { label: "Gourmet",   title: "Gourmet Luck",    msg: "No prize this time, but Hokkaido's delicious local flavours are waiting for you." },
+          { label: "Onsen",     title: "Onsen Luck",      msg: "No prize this time, but a warm onsen and good company will lift your spirits." },
+          { label: "Mt. Yōtei", title: "Mt. Yōtei Luck",  msg: "No prize this time, but an unexpected view of Mt. Yōtei will brighten your day." },
+          { label: "Next time", title: "So close!",       msg: "Not this time — but good fortune is on its way. Enjoy your stay!" },
+        ],
+        already: "You have already spun the wheel.",
+        back: "← Back", guest: "Spun by",
+        errNotFound: "We couldn't find your registration. Please register first to join the lucky draw.",
+        errOffline: "Could not reach the server. Please check your connection and try again.",
+      },
+      ja: {
+        eyebrow: "ラッキードロー", title: "ラッキールーレット",
+        lead: "ボタンを押すか、指でルーレットを回してください！🎁に止まればプレゼント！",
+        btn: "ルーレットを回す", spinning: "幸運を…", hub: "回す",
+        fine: "ご登録お一人様につき1回限り。",
+        prize: "当たり", winTitle: "おめでとうございます！当選です！",
+        winMsg: "今日はニセコでのラッキーデーです！",
+        prizeHow: "この画面をフロントスタッフにご提示いただき、プレゼントをお受け取りください。",
+        fortunes: [
+          { label: "グルメ",   title: "グルメ運",   msg: "今回は残念でしたが、北海道ならではの美味しい味覚があなたを待っています。" },
+          { label: "温泉",     title: "温泉運",     msg: "今回は残念でしたが、温かい温泉と素敵な仲間が心を癒してくれるでしょう。" },
+          { label: "羊蹄山",   title: "羊蹄山運",   msg: "今回は残念でしたが、思いがけない羊蹄山の絶景が一日を彩るでしょう。" },
+          { label: "また次回", title: "惜しい！",   msg: "今回は残念でしたが、幸運はもうすぐそこに。素敵なご滞在を！" },
+        ],
+        already: "ルーレットはすでに回されています。",
+        back: "← 戻る", guest: "",
+        errNotFound: "ご登録が見つかりませんでした。先にご登録のうえご参加ください。",
+        errOffline: "サーバーに接続できません。接続を確認して、もう一度お試しください。",
+      },
+      ko: {
+        eyebrow: "럭키 드로우", title: "럭키 룰렛",
+        lead: "버튼을 누르거나 손가락으로 룰렛을 돌려보세요! 🎁에 멈추면 선물 당첨!",
+        btn: "룰렛 돌리기", spinning: "행운을 빌어요…", hub: "SPIN",
+        fine: "등록 1건당 1회만 참여 가능합니다.",
+        prize: "당첨", winTitle: "당첨되었습니다!",
+        winMsg: "축하합니다 — 오늘은 니세코에서의 행운의 날입니다!",
+        prizeHow: "이 화면을 프런트 데스크 직원에게 보여주시고 선물을 받으세요.",
+        fortunes: [
+          { label: "미식",      title: "미식 행운",     msg: "이번에는 아쉽지만, 홋카이도의 맛있는 현지 음식이 기다리고 있어요." },
+          { label: "온천",      title: "온천 행운",     msg: "이번에는 아쉽지만, 따뜻한 온천과 좋은 사람들이 기분을 북돋아 줄 거예요." },
+          { label: "요테이산",  title: "요테이산 행운", msg: "이번에는 아쉽지만, 뜻밖의 요테이산 절경이 하루를 빛내 줄 거예요." },
+          { label: "다음 기회", title: "아깝네요!",     msg: "이번에는 아쉽지만, 행운이 다가오고 있어요. 즐거운 숙박 되세요!" },
+        ],
+        already: "이미 룰렛을 돌리셨습니다.",
+        back: "← 돌아가기", guest: "",
+        errNotFound: "등록 정보를 찾을 수 없습니다. 먼저 등록 후 참여해 주세요.",
+        errOffline: "서버에 연결할 수 없습니다. 연결을 확인하고 다시 시도해 주세요.",
+      },
+      zh: {
+        eyebrow: "幸运抽奖", title: "幸运转盘",
+        lead: "点击按钮或用手指拨动转盘！停在🎁即可赢得礼物！",
+        btn: "转动转盘", spinning: "祝您好运…", hub: "转",
+        fine: "每次注册仅限转动一次。",
+        prize: "大奖", winTitle: "恭喜您中奖了！",
+        winMsg: "今天是您在二世古的幸运日！",
+        prizeHow: "请向前台工作人员出示此画面以领取礼物。",
+        fortunes: [
+          { label: "美食",     title: "美食好运",   msg: "这次未中奖，但北海道的地道美食正在等着您。" },
+          { label: "温泉",     title: "温泉好运",   msg: "这次未中奖，但温暖的温泉与好友的陪伴将让您心情愉悦。" },
+          { label: "羊蹄山",   title: "羊蹄山好运", msg: "这次未中奖，但意想不到的羊蹄山美景将点亮您的一天。" },
+          { label: "下次好运", title: "差一点！",   msg: "这次未中奖，但好运正在路上。祝您入住愉快！" },
+        ],
+        already: "您已经转过转盘了。",
+        back: "← 返回", guest: "",
+        errNotFound: "未找到您的注册信息。请先注册后再参加抽奖。",
+        errOffline: "无法连接到服务器。请检查网络后重试。",
+      },
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    const nombre = params.get("nombre") || "";
+    const correo = (params.get("correo") || "").toLowerCase();
+    const lang   = i18n[params.get("lang")] ? params.get("lang") : "en";
+    const t      = i18n[lang];
+    document.documentElement.lang = lang;
+
+    const $ = id => document.getElementById(id);
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    function show(id) {
+      document.querySelectorAll(".view").forEach(v => v.classList.toggle("on", v.id === id));
+    }
+
+    // ── Static texts ──────────────────────────────────────────────────
+    $("t-eyebrow").textContent   = t.eyebrow;
+    $("t-title").textContent     = t.title;
+    $("t-lead").textContent      = t.lead;
+    $("t-btn").textContent       = t.btn;
+    $("t-fine").textContent      = t.fine;
+    $("hub-text").textContent    = t.hub;
+    $("t-prize-how").textContent = t.prizeHow;
+    $("back-link").textContent   = t.back;
+    // media.html guests go back to media.html (it restores its own thank-you screen)
+    $("back-link").href = params.get("from") === "media"
+      ? "media.html"
+      : "ticket.html?" + new URLSearchParams({ nombre, correo, lang }).toString();
+    document.title = "Hilton Niseko Village - " + t.eyebrow;
+
+    // ── Build the wheel ───────────────────────────────────────────────
+    //    10 segments: 2 prizes, each of the 4 fortunes twice.
+    //    Index 0 starts at 12 o'clock and goes clockwise.
+    const SEGMENTS = ["win", 0, 1, 2, 3, "win", 0, 1, 2, 3];
+    const ICONS    = ["🍜", "♨️", "🗻", "⭐"];
+    const N     = SEGMENTS.length;
+    const SEG   = 360 / N;
+    const R     = 145;
+    const SVGNS = "http://www.w3.org/2000/svg";
+
+    function polar(r, deg) {
+      const a = (deg - 90) * Math.PI / 180;
+      return [r * Math.cos(a), r * Math.sin(a)];
+    }
+    function wedge(i, r) {
+      const [x1, y1] = polar(r, i * SEG);
+      const [x2, y2] = polar(r, (i + 1) * SEG);
+      return `M0,0 L${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 0 1 ${x2.toFixed(2)},${y2.toFixed(2)} Z`;
+    }
+    function el(tag, attrs, text) {
+      const e = document.createElementNS(SVGNS, tag);
+      for (const k in attrs) e.setAttribute(k, attrs[k]);
+      if (text != null) e.textContent = text;
+      return e;
+    }
+
+    const navyShades = ["hsl(220, 46%, 24%)", "hsl(220, 38%, 33%)"];
+    SEGMENTS.forEach((s, i) => {
+      const win  = s === "win";
+      const fill = win ? "url(#g-gold)" : navyShades[i % 2];
+      const ink  = win ? "hsl(220, 55%, 14%)" : "hsl(40, 50%, 95%)";
+      const mid  = (i + 0.5) * SEG;
+      $("segments").appendChild(el("path", { d: wedge(i, R), fill, stroke: "hsla(40, 80%, 60%, 0.55)", "stroke-width": "1.2" }));
+
+      const g = el("g", { transform: `rotate(${mid})` });
+      g.appendChild(el("text", { class: "seg-icon", x: 0, y: -122, "text-anchor": "middle", "dominant-baseline": "central" },
+                       win ? "🎁" : ICONS[s]));
+      // label runs along the radius, reading from the hub outwards
+      g.appendChild(el("text", { class: "seg-label", x: 0, y: -77, transform: "rotate(-90 0 -77)",
+                                 "text-anchor": "middle", "dominant-baseline": "central", fill: ink },
+                       win ? t.prize : t.fortunes[s].label));
+      $("segments").appendChild(g);
+    });
+
+    for (let i = 0; i < 24; i++) {
+      const [x, y] = polar(154.5, i * 15);
+      $("bulbs").appendChild(el("circle", { class: "bulb" + (i % 2 ? " alt" : ""), cx: x.toFixed(2), cy: y.toFixed(2), r: 3.6 }));
+    }
+
+    // ── Wheel motion ──────────────────────────────────────────────────
+    let angle = 0;                 // current rotation (deg, clockwise)
+    let lastSeg = segAtPointer();
+    let tickTimer = null;
+    const svg = $("wheel-svg");
+
+    function mod(a, n) { return ((a % n) + n) % n; }
+    function segAtPointer() { return Math.floor(mod(-angle, 360) / SEG); }
+
+    function setAngle(a) {
+      angle = a;
+      $("wheel").setAttribute("transform", `rotate(${angle.toFixed(3)})`);
+      const s = segAtPointer();
+      if (s !== lastSeg) {
+        lastSeg = s;
+        const p = $("pointer");
+        p.classList.add("tick");
+        clearTimeout(tickTimer);
+        tickTimer = setTimeout(() => p.classList.remove("tick"), 60);
+      }
+    }
+
+    // Rotation that puts segment i under the pointer (with a little jitter)
+    function targetFor(i, jitter) {
+      return mod(-((i + 0.5) * SEG + jitter), 360);
+    }
+
+    function pickSegment(r) {
+      const kind = r.won ? "win" : (r.fortune || 0) % 4;
+      const options = SEGMENTS.map((s, i) => s === kind ? i : -1).filter(i => i >= 0);
+      return options[Math.floor(Math.random() * options.length)];
+    }
+
+    function highlight(i) {
+      const g = $("hit-glow");
+      g.setAttribute("d", wedge(i, R - 2));
+      g.classList.add("on");
+    }
+
+    // ── Spin ──────────────────────────────────────────────────────────
+    let state = "idle";            // idle | dragging | spinning | done
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+    async function spin(dir, speed) {
+      if (state === "spinning" || state === "done") return;
+      state = "spinning";
+      dir   = dir < 0 ? -1 : 1;
+      speed = Math.min(1.3, Math.max(0.75, speed || 0.9));   // deg per ms
+
+      $("btn-spin").disabled = true;
+      $("t-btn").textContent = t.spinning;
+      $("spin-error").style.display = "none";
+      svg.classList.add("spinning", "locked");
+      if (navigator.vibrate) navigator.vibrate(30);
+
+      // Phase 1: free spin while we ask the server
+      let result = null, failed = null;
+      Promise.all([
+        fetch(`${API_URL}/lucky-draw`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: correo, nombre })
+        }).then(async res => {
+          const data = await res.json();
+          if (res.status === 404) throw new Error("not_found");
+          if (!res.ok) throw new Error(data.error || "error");
+          return data;
+        }),
+        sleep(1100),
+      ]).then(([d]) => { result = d; }, e => { failed = e; });
+
+      let last = performance.now();
+      await new Promise(resolve => {
+        function free(now) {
+          setAngle(angle + dir * speed * (now - last));
+          last = now;
+          if (result || failed) return resolve();
+          requestAnimationFrame(free);
+        }
+        requestAnimationFrame(free);
+      });
+
+      // Phase 2: ease out onto the target segment
+      const seg   = failed ? segAtPointer() : pickSegment(result);
+      const goal  = targetFor(seg, (Math.random() - 0.5) * SEG * 0.6);
+      const turns = failed || reduceMotion ? 1 : 3;
+      const delta = dir > 0 ? mod(goal - angle, 360) : mod(angle - goal, 360);
+      const dist  = turns * 360 + delta;
+      const dur   = Math.min(7000, Math.max(3200, 3 * dist / speed));
+      const start = angle, t0 = performance.now();
+
+      await new Promise(resolve => {
+        function ease(now) {
+          const p = Math.min(1, (now - t0) / dur);
+          const e = 1 - Math.pow(1 - p, 3);
+          setAngle(start + dir * dist * e);
+          if (p < 1) requestAnimationFrame(ease); else resolve();
+        }
+        requestAnimationFrame(ease);
+      });
+      svg.classList.remove("spinning");
+
+      if (failed) {
+        state = "idle";
+        svg.classList.remove("locked");
+        $("btn-spin").disabled = false;
+        $("t-btn").textContent = t.btn;
+        $("spin-error").textContent = failed.message === "not_found" ? t.errNotFound : t.errOffline;
+        $("spin-error").style.display = "block";
+        return;
+      }
+
+      state = "done";
+      highlight(seg);
+      if (navigator.vibrate) navigator.vibrate(result.won ? [80, 40, 80, 40, 220] : 60);
+      await sleep(500);
+      showResult(result, false);
+    }
+
+    function showResult(r, already) {
+      $("spin-area").style.display = "none";
+      const card = $("result");
+      card.classList.toggle("win", r.won);
+      if (r.won) {
+        $("result-icon").textContent  = "🎁";
+        $("result-title").textContent = t.winTitle;
+        $("result-msg").textContent   = t.winMsg;
+        $("prize-code").textContent   = r.code || "";
+      } else {
+        const f = (r.fortune || 0) % 4;
+        $("result-icon").textContent  = ICONS[f];
+        $("result-title").textContent = t.fortunes[f].title;
+        $("result-msg").textContent   = t.fortunes[f].msg;
+      }
+      $("guest-name").textContent = (t.guest ? t.guest + " " : "") + (r.name || nombre);
+      $("after-note").textContent = already ? t.already : "";
+      card.classList.add("on");
+      $("back-link").style.display = "inline-block";
+      setTimeout(() => card.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" }), 150);
+      if (r.won) fx.burst();
+    }
+
+    // ── Button, hub and finger flick ──────────────────────────────────
+    $("btn-spin").addEventListener("click", () => spin(1, 0.9));
+    $("hub").addEventListener("click", () => spin(1, 0.9));
+
+    let drag = null;
+    function pointerAngle(e) {
+      const b = svg.getBoundingClientRect();
+      const x = e.clientX - (b.left + b.width / 2);
+      const y = e.clientY - (b.top + b.height / 2);
+      return Math.atan2(y, x) * 180 / Math.PI;
+    }
+    svg.addEventListener("pointerdown", e => {
+      if (state !== "idle" || e.target.closest("#hub")) return;
+      state = "dragging";
+      svg.classList.add("dragging");
+      svg.setPointerCapture(e.pointerId);
+      drag = { prev: pointerAngle(e), t: performance.now(), v: 0 };
+    });
+    svg.addEventListener("pointermove", e => {
+      if (state !== "dragging" || !drag) return;
+      const a = pointerAngle(e);
+      let d   = a - drag.prev;
+      if (d > 180) d -= 360;
+      if (d < -180) d += 360;
+      const now = performance.now();
+      drag.v    = 0.7 * drag.v + 0.3 * (d / Math.max(1, now - drag.t));
+      drag.prev = a;
+      drag.t    = now;
+      setAngle(angle + d);
+    });
+    function endDrag() {
+      if (state !== "dragging") return;
+      svg.classList.remove("dragging");
+      const v     = drag ? drag.v : 0;
+      const stale = !drag || performance.now() - drag.t > 120;
+      drag  = null;
+      state = "idle";
+      if (!stale && Math.abs(v) > 0.25) spin(Math.sign(v), Math.abs(v) * 1.4);
+    }
+    svg.addEventListener("pointerup", endDrag);
+    svg.addEventListener("pointercancel", endDrag);
+
+    // ── Initial status ────────────────────────────────────────────────
+    async function init() {
+      if (!correo && !nombre) {
+        $("fatal-error").textContent = t.errNotFound;
+        show("view-error");
+        return;
+      }
+      try {
+        const res  = await fetch(`${API_URL}/lucky-draw/status?email=${encodeURIComponent(correo)}&nombre=${encodeURIComponent(nombre)}`);
+        const data = await res.json();
+        if (!data.registered) {
+          $("fatal-error").textContent = t.errNotFound;
+          show("view-error");
+        } else if (data.played) {
+          show("view-wheel");
+          state = "done";
+          svg.classList.add("locked");
+          const seg = pickSegment(data);
+          setAngle(targetFor(seg, 0));
+          highlight(seg);
+          showResult(data, true);
+        } else {
+          show("view-wheel");
+        }
+      } catch (err) {
+        $("fatal-error").textContent = t.errOffline;
+        show("view-error");
+      }
+    }
+
+    // ── Confetti (prize win) ──────────────────────────────────────────
+    const fx = (() => {
+      const cv  = $("fx");
+      const ctx = cv.getContext("2d");
+      let W = 0, H = 0, running = false;
+      const confetti = [];
+
+      function resize() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        W = cv.clientWidth; H = cv.clientHeight;
+        cv.width = W * dpr; cv.height = H * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+      resize();
+      window.addEventListener("resize", resize);
+
+      const colors = ["hsl(40, 90%, 62%)", "hsl(30, 92%, 55%)", "hsl(6, 78%, 56%)", "hsl(340, 80%, 62%)",
+                      "hsl(200, 85%, 58%)", "hsl(150, 60%, 48%)", "hsl(265, 70%, 65%)", "hsl(40, 50%, 95%)"];
+      function piece(x, y, vx, vy) {
+        const round = Math.random() < 0.25;
+        confetti.push({
+          x, y, vx, vy,
+          w: round ? 5 : 6 + Math.random() * 6, h: round ? 5 : 3 + Math.random() * 4, round,
+          rot: Math.random() * Math.PI, vr: (Math.random() - 0.5) * 0.35,
+          sway: Math.random() * Math.PI * 2,
+          c: colors[Math.floor(Math.random() * colors.length)], life: 0,
+        });
+      }
+      // two side cannons
+      function cannons(n) {
+        for (let side = 0; side < 2; side++) {
+          for (let i = 0; i < n; i++) {
+            const ang = side ? -Math.PI * (0.62 + Math.random() * 0.2) : -Math.PI * (0.18 + Math.random() * 0.2);
+            const sp  = 10 + Math.random() * 10;
+            piece(side ? W + 10 : -10, H * 0.8, Math.cos(ang) * sp, Math.sin(ang) * sp);
+          }
+        }
+      }
+      // shower from the top
+      function rain(n) {
+        for (let i = 0; i < n; i++) {
+          piece(Math.random() * W, -20 - Math.random() * H * 0.5, (Math.random() - 0.5) * 2, 1 + Math.random() * 2);
+        }
+      }
+      function burst() {
+        if (reduceMotion) return;
+        cannons(110);
+        rain(120);
+        setTimeout(() => cannons(70), 700);
+        setTimeout(() => rain(90), 1400);
+        if (!running) { running = true; requestAnimationFrame(frame); }
+      }
+
+      function frame() {
+        ctx.clearRect(0, 0, W, H);
+        for (let i = confetti.length - 1; i >= 0; i--) {
+          const p = confetti[i];
+          p.life++;
+          p.vy = Math.min(p.vy + 0.22, 4.2); p.vx *= 0.98;
+          p.sway += 0.06;
+          p.x += p.vx + Math.sin(p.sway) * 0.8; p.y += p.vy; p.rot += p.vr;
+          if (p.y > H + 20 || p.life > 600) { confetti.splice(i, 1); continue; }
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot);
+          ctx.fillStyle = p.c;
+          if (p.round) {
+            ctx.beginPath();
+            ctx.arc(0, 0, p.w / 2, 0, Math.PI * 2);
+            ctx.fill();
+          } else {
+            ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h * Math.abs(Math.cos(p.rot * 2)));
+          }
+          ctx.restore();
+        }
+        if (confetti.length) requestAnimationFrame(frame);
+        else { running = false; ctx.clearRect(0, 0, W, H); }
+      }
+      return { burst };
+    })();
+
+    init();
+  </script>
+</body>
+</html>

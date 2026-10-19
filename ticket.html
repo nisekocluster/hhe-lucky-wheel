@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hilton Niseko Village - Tu Ticket</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: hsl(220, 55%, 14%);
+      color: hsl(40, 50%, 95%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      padding-bottom: 6.5rem;
+      -webkit-tap-highlight-color: transparent;
+    }
+    h1 { font-family: 'Playfair Display', serif; }
+    .wrapper {
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      animation: floatIn 0.6s ease-out;
+    }
+    .hotel-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: hsl(40, 60%, 65%);
+      margin-bottom: 2rem;
+    }
+    .drink-ticket-label {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: hsl(40, 70%, 68%);
+      margin-bottom: 1.25rem;
+    }
+    .wifi-box {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: hsl(220, 55%, 14%);
+      padding: 1rem 1.25rem calc(1rem + env(safe-area-inset-bottom, 0px));
+      border-top: 1px solid hsla(40, 60%, 65%, 0.15);
+      text-align: center;
+      z-index: 10;
+    }
+    .wifi-label {
+      font-size: 0.95rem;
+      letter-spacing: 0.03em;
+      color: hsl(220, 15%, 55%);
+    }
+    .wifi-label .wifi-blank {
+      display: inline-block;
+      min-width: 100px;
+      padding-bottom: 2px;
+      border-bottom: 1px solid hsla(220, 15%, 55%, 0.4);
+      margin-left: 0.4rem;
+      color: hsl(40, 60%, 70%);
+      font-weight: 500;
+      letter-spacing: 0.03em;
+      text-align: center;
+    }
+    .wifi-note {
+      color: hsl(220, 15%, 45%);
+      font-size: 0.95rem;
+      margin-top: 0.35rem;
+      line-height: 1.45;
+    }
+    .wifi-howto-link {
+      display: inline-block;
+      margin-top: 0.5rem;
+      color: hsl(40, 60%, 65%);
+      font-size: 0.9rem;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .wifi-howto-link:hover { color: hsl(40, 70%, 75%); }
+    .wifi-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: hsla(220, 55%, 8%, 0.92);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+    .wifi-overlay.open { display: flex; }
+    .wifi-overlay-content {
+      position: relative;
+      max-width: 90vw;
+      max-height: 85vh;
+    }
+    .wifi-overlay-content img {
+      max-width: 90vw;
+      max-height: 85vh;
+      display: block;
+      border-radius: 8px;
+      box-shadow: 0 0 40px hsla(0, 0%, 0%, 0.5);
+    }
+    .wifi-overlay-close {
+      position: absolute;
+      top: -1.1rem;
+      right: -1.1rem;
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 50%;
+      background: hsl(40, 60%, 65%);
+      color: hsl(220, 55%, 14%);
+      border: none;
+      font-size: 1.25rem;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 10px hsla(0, 0%, 0%, 0.4);
+    }
+    .wifi-overlay-close:hover { background: hsl(40, 70%, 75%); }
+    #ticket-view img {
+      width: 280px;
+      cursor: pointer;
+      transition: transform 0.3s, opacity 0.3s;
+      filter: drop-shadow(0 0 35px hsla(40, 80%, 50%, 0.35));
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-user-drag: none;
+      user-drag: none;
+      outline: none;
+    }
+    #ticket-view img:hover { transform: scale(1.05); }
+    #ticket-view p {
+      color: hsl(220, 15%, 55%);
+      font-size: 1rem;
+      margin-top: 1.5rem;
+    }
+    #ticket-view .loading-msg {
+      color: hsl(40, 60%, 65%);
+      font-size: 1rem;
+      margin-top: 1.5rem;
+      display: none;
+    }
+    .ticket-error {
+      background: hsla(0, 75%, 55%, 0.12);
+      border: 1px solid hsla(0, 75%, 55%, 0.4);
+      color: hsl(0, 85%, 70%);
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      margin-top: 1rem;
+      font-size: 0.875rem;
+      display: none;
+    }
+    #gracias { display: none; }
+    #gracias h1 {
+      font-size: 3.5rem;
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+      color: hsl(40, 50%, 95%);
+    }
+    #gracias .nombre {
+      color: hsl(40, 80%, 55%);
+      font-size: 1.6rem;
+      font-weight: 600;
+    }
+    #gracias .gracias-sub {
+      color: hsl(220, 15%, 55%);
+      font-size: 1rem;
+      margin-top: 0.75rem;
+    }
+    .lucky-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 2rem;
+      padding: 0.95rem 1.9rem;
+      border-radius: 999px;
+      background: linear-gradient(135deg, hsl(40, 90%, 72%), hsl(40, 80%, 55%) 45%, hsl(30, 90%, 45%));
+      color: hsl(220, 55%, 14%);
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      overflow: hidden;
+      box-shadow: 0 8px 26px hsla(40, 80%, 50%, 0.35);
+      animation: luckyPulse 2.4s ease-in-out infinite;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .lucky-btn::after {
+      content: "";
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 40%;
+      left: -60%;
+      background: linear-gradient(100deg, transparent, hsla(0, 0%, 100%, 0.55), transparent);
+      animation: luckySheen 2.8s ease-in-out infinite;
+    }
+    .lucky-btn:active { transform: scale(0.97); }
+    .lucky-hint {
+      color: hsl(220, 15%, 50%);
+      font-size: 0.85rem;
+      margin-top: 0.7rem;
+    }
+    @keyframes luckyPulse {
+      0%, 100% { box-shadow: 0 8px 26px hsla(40, 80%, 50%, 0.35); }
+      50%      { box-shadow: 0 8px 36px hsla(40, 80%, 55%, 0.6); }
+    }
+    @keyframes luckySheen { 0%, 55% { left: -60%; } 100% { left: 130%; } }
+    @media (prefers-reduced-motion: reduce) {
+      .lucky-btn, .lucky-btn::after { animation: none; }
+    }
+    @keyframes floatIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (max-width: 480px) {
+      body { padding: 1.5rem 1rem; align-items: flex-start; padding-top: 3rem; padding-bottom: 7.5rem; }
+      .wrapper { max-width: 100%; }
+      .hotel-name { font-size: 1.15rem; letter-spacing: 0.2em; margin-bottom: 1.5rem; }
+      .drink-ticket-label { font-size: 1.15rem; margin-bottom: 1rem; }
+      #ticket-view img { width: 220px; }
+      #gracias h1 { font-size: 2.75rem; }
+      #gracias .nombre { font-size: 1.3rem; }
+    }
+    @media (max-width: 360px) {
+      #ticket-view img { width: 180px; }
+      #gracias h1 { font-size: 2.25rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <p class="hotel-name">Hilton Niseko Village</p>
+
+    <div id="ticket-view">
+      <p class="drink-ticket-label" id="drink-ticket-label">Drink Ticket</p>
+      <img id="ticket-img" src="ticket-cheers.png" alt="Ticket Brindis">
+      <p id="hint-text">Please, show the ticket to the restaurant staff to redeem your free drink.</p>
+      <p class="loading-msg" id="loading-msg">Processing…</p>
+      <div class="ticket-error" id="ticket-error"></div>
+    </div>
+
+    <div id="gracias">
+      <h1 id="gracias-heading">Thank<br>You</h1>
+      <p class="nombre" id="nombre-display"></p>
+      <p class="gracias-sub" id="gracias-sub"></p>
+      <a class="lucky-btn" id="lucky-btn" href="luckydraw.html">✦ <span id="lucky-label">Try your luck</span></a>
+      <p class="lucky-hint" id="lucky-hint"></p>
+    </div>
+  </div>
+
+  <footer class="wifi-box">
+    <p class="wifi-label" id="wifi-label">WiFi Password:<span class="wifi-blank"></span></p>
+    <p class="wifi-note" id="wifi-note">Insert the passcode in the promotional code field when connecting to the hhonors network.</p>
+    <button type="button" class="wifi-howto-link" id="wifi-howto-link">How to connect to Free Wi-Fi</button>
+  </footer>
+
+  <div class="wifi-overlay" id="wifi-overlay">
+    <div class="wifi-overlay-content">
+      <button type="button" class="wifi-overlay-close" id="wifi-overlay-close" aria-label="Close">&times;</button>
+      <img src="Steps.png" alt="How to connect to Free Wi-Fi" id="wifi-overlay-img">
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "https://hhe-production.up.railway.app";
+
+    // ── Fallback if the server is unreachable ──
+    let WIFI_PASSWORD = "2026aug";
+
+    const thankYou = {
+      en: { heading: "Thank\nYou",        sub: "We hope you enjoy your stay." },
+      ja: { heading: "ありがとう\nございます", sub: "ご滞在をお楽しみください。" },
+      ko: { heading: "감사합니다",            sub: "즐거운 숙박이 되시길 바랍니다." },
+      zh: { heading: "谢谢\n您",             sub: "祝您入住愉快。" },
+    };
+
+    const luckyInfo = {
+      en: { btn: "Spin the lucky wheel", seen: "See my result",  hint: "One spin per guest — land on 🎁 to win a prize!" },
+      ja: { btn: "ルーレットを回す",   seen: "結果を見る",       hint: "お一人様1回 — 🎁に止まればプレゼント！" },
+      ko: { btn: "럭키 룰렛 돌리기",   seen: "내 결과 보기",       hint: "1인 1회 — 🎁에 멈추면 선물 당첨!" },
+      zh: { btn: "转动幸运转盘",       seen: "查看我的结果",       hint: "每人一次——停在🎁即可赢得礼物！" },
+    };
+
+    const wifiInfo = {
+      en: { label: "Wi-Fi Password:", note: "Insert the passcode in the promotional code field when connecting to the hhonors network." },
+      ja: { label: "Wi-Fiパスワード：", note: "hhonorsネットワークに接続する際、プロモーションコード欄にパスコードを入力してください。" },
+      ko: { label: "Wi-Fi 비밀번호:", note: "hhonors 네트워크에 연결할 때 프로모션 코드란에 비밀번호를 입력하세요." },
+      zh: { label: "Wi-Fi 密码：", note: "连接 hhonors 网络时，请在优惠码栏中输入该密码。" },
+    };
+
+    const wifiHowtoInfo = {
+      en: "How to connect to Free Wi-Fi",
+      ja: "無料Wi-Fiへの接続方法",
+      ko: "무료 Wi-Fi 연결 방법",
+      zh: "如何连接免费Wi-Fi",
+    };
+
+    const ticketViewInfo = {
+      en: { label: "Drink Ticket", hint: "Please, show the ticket to the restaurant staff to redeem your free drink." },
+      ja: { label: "ドリンクチケット", hint: "無料ドリンクをお受け取りになるには、レストランスタッフにこのチケットをご提示ください。" },
+      ko: { label: "음료 티켓", hint: "무료 음료를 받으시려면 레스토랑 직원에게 티켓을 보여주세요." },
+      zh: { label: "饮品券", hint: "请向餐厅工作人员出示此券以兑换您的免费饮品。" },
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    let nombre   = params.get("nombre");
+    let correo   = params.get("correo");
+    let lang     = params.get("lang") || "en";
+
+    // Demo mode only if BOTH nombre and correo are missing
+    if (!nombre || !correo) {
+      nombre = "Demo User";
+      correo = "demo@local.com";
+    }
+
+    function applyWifiInfo() {
+      const w = wifiInfo[lang] || wifiInfo.en;
+      document.getElementById("wifi-label").innerHTML = w.label + '<span class="wifi-blank">' + WIFI_PASSWORD + '</span>';
+      document.getElementById("wifi-note").textContent = w.note;
+      document.getElementById("wifi-howto-link").textContent = wifiHowtoInfo[lang] || wifiHowtoInfo.en;
+    }
+    applyWifiInfo();
+
+    async function loadWifiPassword() {
+      try {
+        const res = await fetch(`${API_URL}/wifi-password`);
+        const data = await res.json();
+        if (data.wifi_password) {
+          WIFI_PASSWORD = data.wifi_password;
+          applyWifiInfo();
+        }
+      } catch (err) {
+        console.warn("Could not load WiFi password, using fallback:", err);
+      }
+    }
+    loadWifiPassword();
+
+    function applyTicketViewInfo() {
+      const t = ticketViewInfo[lang] || ticketViewInfo.en;
+      document.getElementById("drink-ticket-label").textContent = t.label;
+      document.getElementById("hint-text").textContent = t.hint;
+    }
+    applyTicketViewInfo();
+
+    // ── localStorage helpers ──
+    function getUsedTickets() {
+      try { return JSON.parse(localStorage.getItem("hnv_used_tickets") || "[]"); }
+      catch { return []; }
+    }
+    function markTicketUsed(name, email) {
+      const list = getUsedTickets();
+      list.push({ name: name.toLowerCase(), email: email.toLowerCase() });
+      localStorage.setItem("hnv_used_tickets", JSON.stringify(list));
+    }
+    function isTicketAlreadyUsed(name, email) {
+      const list = getUsedTickets();
+      const lowerName  = name.toLowerCase();
+      const lowerEmail = email.toLowerCase();
+      return list.some(r => r.name === lowerName || r.email === lowerEmail);
+    }
+
+    if (isTicketAlreadyUsed(nombre, correo)) {
+      mostrarGracias();
+      bloquearBack();
+    } else {
+      checkTicketStatusServer();
+    }
+
+    async function checkTicketStatusServer() {
+      try {
+        const res = await fetch(`${API_URL}/check-ticket?email=${encodeURIComponent(correo)}&nombre=${encodeURIComponent(nombre)}`);
+        const data = await res.json();
+        if (data.ticket_used) {
+          markTicketUsed(nombre, correo);
+          mostrarGracias();
+          bloquearBack();
+        }
+      } catch (err) {
+        console.warn("Could not verify ticket status:", err);
+      }
+    }
+
+    let confirmado = false;
+
+    document.getElementById("ticket-img").addEventListener("click", async function() {
+      if (!confirmado) {
+        document.getElementById("hint-text").textContent = "Click again to confirm";
+        confirmado = true;
+        return;
+      }
+
+      const img        = document.getElementById("ticket-img");
+      const loadingMsg = document.getElementById("loading-msg");
+      const errorEl    = document.getElementById("ticket-error");
+
+      img.style.pointerEvents = "none";
+      img.style.opacity = "0.6";
+      document.getElementById("hint-text").style.display = "none";
+      loadingMsg.style.display = "block";
+      errorEl.style.display = "none";
+
+      if (isTicketAlreadyUsed(nombre, correo)) {
+        markTicketUsed(nombre, correo);
+        mostrarGracias();
+        bloquearBack();
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/use-ticket`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: correo, nombre })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          markTicketUsed(nombre, correo);
+          mostrarGracias();
+          bloquearBack();
+        } else if (res.status === 409) {
+          markTicketUsed(nombre, correo);
+          mostrarGracias();
+          bloquearBack();
+        } else {
+          throw new Error(data.error || "Unknown error");
+        }
+
+      } catch (err) {
+        img.style.pointerEvents = "auto";
+        img.style.opacity = "1";
+        loadingMsg.style.display = "none";
+        document.getElementById("hint-text").style.display = "block";
+        errorEl.textContent = "Could not connect to server. Please try again.";
+        errorEl.style.display = "block";
+        confirmado = false;
+      }
+    });
+
+    function mostrarGracias() {
+      document.getElementById("ticket-view").style.display = "none";
+      const gracias = document.getElementById("gracias");
+      gracias.style.display = "block";
+      gracias.style.animation = "floatIn 0.6s ease-out";
+      const t = thankYou[lang] || thankYou.en;
+      document.getElementById("gracias-heading").innerHTML = t.heading.replace("\n", "<br>");
+      document.getElementById("gracias-sub").textContent = t.sub;
+      document.getElementById("nombre-display").textContent = nombre;
+      setupLuckyButton();
+    }
+
+    async function setupLuckyButton() {
+      const l = luckyInfo[lang] || luckyInfo.en;
+      document.getElementById("lucky-btn").href =
+        "luckydraw.html?" + new URLSearchParams({ nombre, correo, lang }).toString();
+      document.getElementById("lucky-label").textContent = l.btn;
+      document.getElementById("lucky-hint").textContent = l.hint;
+      try {
+        const res  = await fetch(`${API_URL}/lucky-draw/status?email=${encodeURIComponent(correo)}&nombre=${encodeURIComponent(nombre)}`);
+        const data = await res.json();
+        if (data.played) {
+          document.getElementById("lucky-label").textContent = l.seen;
+          document.getElementById("lucky-hint").textContent = "";
+        }
+      } catch (err) {
+        console.warn("Could not load lucky draw status:", err);
+      }
+    }
+
+    function bloquearBack() {
+      history.pushState(null, null, location.href);
+      window.onpopstate = function () { history.go(1); };
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      const howtoLink   = document.getElementById("wifi-howto-link");
+      const overlay     = document.getElementById("wifi-overlay");
+      const overlayClose = document.getElementById("wifi-overlay-close");
+
+      if (!howtoLink || !overlay || !overlayClose) return;
+
+      function openOverlay() {
+        overlay.classList.add("open");
+      }
+      function closeOverlay() {
+        overlay.classList.remove("open");
+      }
+
+      howtoLink.addEventListener("click", openOverlay);
+      overlayClose.addEventListener("click", closeOverlay);
+
+      // Close when clicking outside the image
+      overlay.addEventListener("click", function (e) {
+        if (e.target === overlay) closeOverlay();
+      });
+
+      // Close with Escape key
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && overlay.classList.contains("open")) closeOverlay();
+      });
+    });
+  </script>
+</body>
+</html>
