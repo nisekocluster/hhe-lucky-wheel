@@ -653,7 +653,8 @@ def admin_analytics():
                        SELECT ((created_at AT TIME ZONE 'UTC')
                                 AT TIME ZONE 'Asia/Tokyo')::date AS day,
                               (source = 'media')        AS is_media,
-                              (ticket_used IS TRUE)     AS used
+                              (ticket_used IS TRUE)     AS used,
+                              (draw_number IS NOT NULL) AS spun
                        FROM registrations
                        WHERE deleted = FALSE
                    )
@@ -662,7 +663,8 @@ def admin_analytics():
                           COUNT(*) FILTER (WHERE is_media IS NOT TRUE)    AS web,
                           COUNT(*) FILTER (WHERE is_media IS TRUE)        AS media,
                           COUNT(*) FILTER (WHERE is_media IS NOT TRUE AND used)     AS used,
-                          COUNT(*) FILTER (WHERE is_media IS NOT TRUE AND NOT used) AS pending
+                          COUNT(*) FILTER (WHERE is_media IS NOT TRUE AND NOT used) AS pending,
+                          COUNT(*) FILTER (WHERE spun)                    AS spun
                    FROM r
                    WHERE (%(f)s::date IS NULL OR day >= %(f)s::date)
                      AND (%(t)s::date IS NULL OR day <= %(t)s::date)
@@ -672,18 +674,51 @@ def admin_analytics():
             )
             rows = cur.fetchall()
 
-    keys   = ("total", "web", "media", "used", "pending")
+            # Lucky wheel: grouped by the day of the spin (not the registration)
+            cur.execute(
+                """SELECT ((draw_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Tokyo') AS at_local,
+                          first_name, last_name, source, draw_won, draw_code
+                   FROM registrations
+                   WHERE deleted = FALSE AND draw_number IS NOT NULL
+                     AND (%(f)s::date IS NULL OR ((draw_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Tokyo')::date >= %(f)s::date)
+                     AND (%(t)s::date IS NULL OR ((draw_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Tokyo')::date <= %(t)s::date)
+                   ORDER BY draw_at DESC NULLS LAST""",
+                {"f": date_from, "t": date_to}
+            )
+            draws = cur.fetchall()
+
+    keys   = ("total", "web", "media", "used", "pending", "spun")
     totals = {k: 0 for k in keys}
-    days   = []
+    by_day = {}
     for r in rows:
         day = r["day"].isoformat() if r["day"] else "Unknown"
-        entry = {"day": day, **{k: int(r[k]) for k in keys}}
-        days.append(entry)
+        entry = {"day": day, **{k: int(r[k]) for k in keys}, "spins": 0, "wins": 0}
+        by_day[day] = entry
         for k in keys:
             totals[k] += entry[k]
 
+    wheel   = {"spins": 0, "spins_web": 0, "spins_media": 0, "wins": 0}
+    winners = []
+    for d in draws:
+        day = d["at_local"].date().isoformat() if d["at_local"] else "Unknown"
+        entry = by_day.setdefault(day, {"day": day, **{k: 0 for k in keys}, "spins": 0, "wins": 0})
+        entry["spins"] += 1
+        wheel["spins"] += 1
+        wheel["spins_media" if d["source"] == "media" else "spins_web"] += 1
+        if d["draw_won"]:
+            entry["wins"] += 1
+            wheel["wins"] += 1
+            winners.append({
+                "at":     d["at_local"].strftime("%Y-%m-%d %H:%M") if d["at_local"] else "",
+                "name":   f'{d["first_name"]} {d["last_name"]}',
+                "source": d["source"] or "web",
+                "code":   d["draw_code"] or "",
+            })
+
+    days = sorted(by_day.values(), key=lambda e: (e["day"] != "Unknown", e["day"]))
     return jsonify({"from": date_from, "to": date_to,
-                    "totals": totals, "days": days})
+                    "totals": totals, "days": days,
+                    "wheel": wheel, "winners": winners})
 
 
 # ── GET /wifi-password — public, used by ticket.html ──────────────────
