@@ -210,6 +210,15 @@ def init_db():
                     "CREATE SEQUENCE IF NOT EXISTS lucky_draw_seq_media START 1")
             con.commit()
 
+            # 11. Which version of the form the guest used: with lucky wheel
+            #     (/luckydraw, /media-luckydraw) or without (/, /media). Guests registered
+            #     before this column existed all had the wheel, hence DEFAULT TRUE.
+            run_sql(cur, "add lucky_draw col", """
+                ALTER TABLE registrations
+                    ADD COLUMN IF NOT EXISTS lucky_draw BOOLEAN DEFAULT TRUE
+            """)
+            con.commit()
+
     print("[init_db] Done.")
 
 
@@ -237,6 +246,8 @@ def register():
     source     = (data.get("source") or "web").strip().lower()
     if source not in ("web", "media"):
         source = "web"
+    # Registered from the version with the lucky wheel?
+    lucky_draw = data.get("luckyDraw") is True
 
     if not first_name or not last_name or not email:
         return jsonify({"error": "missing_fields"}), 400
@@ -261,9 +272,9 @@ def register():
 
                 cur.execute(
                     """INSERT INTO registrations
-                       (first_name, last_name, email, phone, country, lang, source)
-                       VALUES (%s, %s, %s, %s, %s, %s, %s)""",
-                    (first_name, last_name, email, phone, country, lang, source)
+                       (first_name, last_name, email, phone, country, lang, source, lucky_draw)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+                    (first_name, last_name, email, phone, country, lang, source, lucky_draw)
                 )
             con.commit()
     except psycopg2.errors.UniqueViolation as e:
@@ -376,7 +387,7 @@ _FORTUNES      = 4   # non-winning fortunes shown by luckydraw.html
 
 
 def _find_registration(cur, email, nombre, lock=False):
-    cols = "id, first_name, last_name, source, draw_number, draw_won, draw_code"
+    cols = "id, first_name, last_name, source, lucky_draw, draw_number, draw_won, draw_code"
     tail = " FOR UPDATE" if lock else ""
     if email:
         cur.execute(
@@ -422,9 +433,11 @@ def lucky_draw_status():
 
     if not row:
         return jsonify({"registered": False, "played": False})
+    if row["lucky_draw"] is False:
+        return jsonify({"registered": True, "eligible": False, "played": False})
     if row["draw_number"] is None:
-        return jsonify({"registered": True, "played": False})
-    return jsonify({"registered": True, **_draw_result(row, True)})
+        return jsonify({"registered": True, "eligible": True, "played": False})
+    return jsonify({"registered": True, "eligible": True, **_draw_result(row, True)})
 
 
 # ── POST /lucky-draw ───────────────────────────────────────────────────
@@ -443,6 +456,10 @@ def lucky_draw():
             row = _find_registration(cur, email, nombre, lock=True)
             if not row:
                 return jsonify({"error": "not_found"}), 404
+
+            # registered on the version without the lucky wheel
+            if row["lucky_draw"] is False:
+                return jsonify({"error": "not_eligible"}), 403
 
             if row["draw_number"] is not None:
                 return jsonify(_draw_result(row, True)), 200
@@ -654,7 +671,8 @@ def admin_analytics():
                                 AT TIME ZONE 'Asia/Tokyo')::date AS day,
                               (source = 'media')        AS is_media,
                               (ticket_used IS TRUE)     AS used,
-                              (draw_number IS NOT NULL) AS spun
+                              (draw_number IS NOT NULL) AS spun,
+                              (lucky_draw IS NOT FALSE) AS lucky
                        FROM registrations
                        WHERE deleted = FALSE
                    )
@@ -664,7 +682,8 @@ def admin_analytics():
                           COUNT(*) FILTER (WHERE is_media IS TRUE)        AS media,
                           COUNT(*) FILTER (WHERE is_media IS NOT TRUE AND used)     AS used,
                           COUNT(*) FILTER (WHERE is_media IS NOT TRUE AND NOT used) AS pending,
-                          COUNT(*) FILTER (WHERE spun)                    AS spun
+                          COUNT(*) FILTER (WHERE spun)                    AS spun,
+                          COUNT(*) FILTER (WHERE lucky)                   AS lucky
                    FROM r
                    WHERE (%(f)s::date IS NULL OR day >= %(f)s::date)
                      AND (%(t)s::date IS NULL OR day <= %(t)s::date)
@@ -687,7 +706,7 @@ def admin_analytics():
             )
             draws = cur.fetchall()
 
-    keys   = ("total", "web", "media", "used", "pending", "spun")
+    keys   = ("total", "web", "media", "used", "pending", "spun", "lucky")
     totals = {k: 0 for k in keys}
     by_day = {}
     for r in rows:
@@ -774,6 +793,16 @@ _PUBLIC_FILES = {"index.html", "ticket.html", "luckydraw.html", "media.html",
 @app.route("/", methods=["GET"])
 def page_index():
     return send_from_directory(_BASE_DIR, "index.html")
+
+# Same pages, version with the lucky wheel (the page reads its own address)
+#    /luckydraw is the registration page; the wheel itself is luckydraw.html
+@app.route("/luckydraw/", methods=["GET"], strict_slashes=False)
+def page_index_lucky():
+    return send_from_directory(_BASE_DIR, "index.html")
+
+@app.route("/media-luckydraw/", methods=["GET"], strict_slashes=False)
+def page_media_lucky():
+    return send_from_directory(_BASE_DIR, "media.html")
 
 @app.route("/<path:filename>", methods=["GET"])
 def page_file(filename):

@@ -409,6 +409,9 @@
     //    Ejemplo: "https://hilton-niseko-api.up.railway.app"
     // ─────────────────────────────────────────────────────────────────
     const API_URL = "https://hheluckydraw-production.up.railway.app";
+    // Version with the lucky wheel: opened as /luckydraw (or index.html?lucky).
+    // The plain address (/) is the version without the wheel.
+    const LUCKY_DRAW = /\/luckydraw\/?$/.test(location.pathname) || new URLSearchParams(location.search).has("lucky");
 
     const translations = {
       en: {
@@ -689,7 +692,7 @@
         const res = await fetch(`${API_URL}/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ firstName, lastName, email: correo, phone, country, lang: currentLang })
+          body: JSON.stringify({ firstName, lastName, email: correo, phone, country, lang: currentLang, luckyDraw: LUCKY_DRAW })
         });
 
         const data = await res.json();

@@ -584,6 +584,9 @@
     // 🔧 CONFIGURACIÓN — misma API que index.html
     // ─────────────────────────────────────────────────────────────────
     const API_URL = "https://hheluckydraw-production.up.railway.app";
+    // Version with the lucky wheel: opened as /media-luckydraw (or media.html?lucky).
+    // The plain address (/media) is the version without the wheel.
+    const LUCKY_DRAW = /\/media-luckydraw\/?$/.test(location.pathname) || new URLSearchParams(location.search).has("lucky");
 
     // Página solo en japonés: el idioma que se guarda en la base de datos.
     const LANG = "ja";
@@ -702,11 +705,13 @@
       btn.href = "luckydraw.html?" + new URLSearchParams({
         nombre: fullName, correo: email, lang: LANG, from: "media"
       }).toString();
-      document.getElementById("lucky-hint").textContent = "お一人様1回 — 🎁に止まればプレゼント！";
-      btn.classList.add("on");
       try {
         const res  = await fetch(`${API_URL}/lucky-draw/status?email=${encodeURIComponent(email)}&nombre=${encodeURIComponent(fullName)}`);
         const data = await res.json();
+        // The button only appears for guests registered on /media-luckydraw
+        if (!data.eligible) return;
+        document.getElementById("lucky-hint").textContent = "お一人様1回 — 🎁に止まればプレゼント！";
+        btn.classList.add("on");
         if (data.played) {
           document.getElementById("lucky-label").textContent = "結果を見る";
           document.getElementById("lucky-hint").textContent = "";
@@ -782,7 +787,7 @@
         const res = await fetch(`${API_URL}/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ firstName, lastName, email: correo, phone, country, lang: LANG, source: "media" })
+          body: JSON.stringify({ firstName, lastName, email: correo, phone, country, lang: LANG, source: "media", luckyDraw: LUCKY_DRAW })
         });
 
         const data = await res.json();

@@ -3188,8 +3188,10 @@
       document.getElementById("an-spins-sub").textContent = `Normal ${w.spins_web} · Media ${w.spins_media}`;
       document.getElementById("an-wins").textContent      = w.wins;
       document.getElementById("an-wins-sub").textContent  = w.spins ? `${pct(w.wins, w.spins)}% of spins` : "\u00a0";
-      document.getElementById("an-part").textContent      = t.total ? `${pct(t.spun, t.total)}%` : "—";
-      document.getElementById("an-part-sub").textContent  = `${t.spun} of ${t.total} registered guests spun`;
+      // only guests registered on the lucky-wheel version (/luckydraw, /media-luckydraw) can spin
+      const lucky = t.lucky ?? t.total;
+      document.getElementById("an-part").textContent      = lucky ? `${pct(t.spun, lucky)}%` : "—";
+      document.getElementById("an-part-sub").textContent  = `${t.spun} of ${lucky} lucky-wheel guests spun`;
 
       const winners = a.winners || [];
       document.getElementById("an-winners-body").innerHTML = winners.length
@@ -3254,7 +3256,8 @@
       lines.push([q("Drink tickets not used"),     t.pending, q(pct(t.pending, t.web) + "% of normal")].join(","));
       lines.push([q("Lucky wheel spins"),          w.spins,   q(`Normal ${w.spins_web} / Media ${w.spins_media}`)].join(","));
       lines.push([q("Lucky wheel prizes won"),     w.wins,    q(pct(w.wins, w.spins) + "% of spins")].join(","));
-      lines.push([q("Lucky wheel participation"),  t.spun,    q(pct(t.spun, t.total) + "% of registered guests")].join(","));
+      lines.push([q("Lucky-wheel registrations"),  t.lucky ?? t.total, q(pct(t.lucky ?? t.total, t.total) + "% of total")].join(","));
+      lines.push([q("Lucky wheel participation"),  t.spun,    q(pct(t.spun, t.lucky ?? t.total) + "% of lucky-wheel guests")].join(","));
       lines.push("");
       lines.push(["Date", "Total", "Normal", "Media", "Tickets used", "Tickets not used", "Spins", "Prizes"].map(q).join(","));
       days.forEach(d => lines.push([q(d.day), d.total, d.web, d.media, d.used, d.pending, d.spins, d.wins].join(",")));

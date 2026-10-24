@@ -187,7 +187,7 @@
     }
     .lucky-btn {
       position: relative;
-      display: inline-flex;
+      display: none;
       align-items: center;
       justify-content: center;
       gap: 0.5rem;
@@ -205,6 +205,7 @@
       animation: luckyPulse 2.4s ease-in-out infinite;
       -webkit-tap-highlight-color: transparent;
     }
+    .lucky-btn.on { display: inline-flex; }
     .lucky-btn::after {
       content: "";
       position: absolute;
@@ -475,10 +476,13 @@
       document.getElementById("lucky-btn").href =
         "luckydraw.html?" + new URLSearchParams({ nombre, correo, lang }).toString();
       document.getElementById("lucky-label").textContent = l.btn;
-      document.getElementById("lucky-hint").textContent = l.hint;
       try {
         const res  = await fetch(`${API_URL}/lucky-draw/status?email=${encodeURIComponent(correo)}&nombre=${encodeURIComponent(nombre)}`);
         const data = await res.json();
+        // The button only appears for guests registered on /luckydraw
+        if (!data.eligible) return;
+        document.getElementById("lucky-hint").textContent = l.hint;
+        document.getElementById("lucky-btn").classList.add("on");
         if (data.played) {
           document.getElementById("lucky-label").textContent = l.seen;
           document.getElementById("lucky-hint").textContent = "";
