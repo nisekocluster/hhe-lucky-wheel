@@ -10,7 +10,10 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 # ── Config ─────────────────────────────────────────────────────────────
 DATABASE_URL   = os.environ.get("DATABASE_URL", "")
 ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "HILTON2026")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
+# Required: no default password, the app refuses to start without it.
+if not ADMIN_PASSWORD:
+    raise RuntimeError("Missing env var: ADMIN_PASSWORD")
 # PIN for the Analytics section of admin.html. Set it in Railway → Variables.
 # If it is not set, analytics stays locked (no default PIN on purpose).
 ANALYTICS_PIN  = os.environ.get("ANALYTICS_PIN", "").strip()
