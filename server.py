@@ -386,7 +386,7 @@ def use_ticket():
 #    media guests → lucky_draw_seq_media (every LUCKY_DRAW_EVERY_MEDIA-th). The draw number itself is never
 #    sent to the client, so guests can't time their draw.
 _CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"   # no 0/O/1/I
-_FORTUNES      = 4   # non-winning fortunes shown by luckydraw.html
+_FORTUNES      = 4   # non-winning fortunes shown by wheel.html
 
 
 def _find_registration(cur, email, nombre, lock=False):
@@ -790,7 +790,8 @@ def health():
 #    Railway also serves the guest/admin pages. Only the files listed here
 #    are public, so server.py and other project files are never exposed.
 _BASE_DIR     = os.path.dirname(os.path.abspath(__file__))
-_PUBLIC_FILES = {"index.html", "ticket.html", "luckydraw.html", "media.html",
+_PUBLIC_FILES = {"index.html", "ticket.html", "wheel.html", "media.html",
+                 "luckydraw.html", "media-luckydraw.html",
                  "admin.html", "Steps.png", "ticket-cheers.png"}
 
 @app.route("/", methods=["GET"])
@@ -798,7 +799,7 @@ def page_index():
     return send_from_directory(_BASE_DIR, "index.html")
 
 # Same pages, version with the lucky wheel (the page reads its own address)
-#    /luckydraw is the registration page; the wheel itself is luckydraw.html
+#    /luckydraw is the registration page; the wheel itself is wheel.html
 @app.route("/luckydraw/", methods=["GET"], strict_slashes=False)
 def page_index_lucky():
     return send_from_directory(_BASE_DIR, "index.html")

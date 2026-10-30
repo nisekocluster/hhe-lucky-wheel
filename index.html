@@ -413,6 +413,14 @@
     // The plain address (/) is the version without the wheel.
     const LUCKY_DRAW = /\/luckydraw\/?$/.test(location.pathname) || new URLSearchParams(location.search).has("lucky");
 
+    // Arrived via luckydraw.html (GitHub Pages): show the short address again
+    if (new URLSearchParams(location.search).has("lucky")) {
+      const q = new URLSearchParams(location.search);
+      q.delete("lucky");
+      const rest = q.toString();
+      history.replaceState(null, "", "luckydraw" + (rest ? "?" + rest : "") + location.hash);
+    }
+
     const translations = {
       en: {
         title: "Join Hilton Honors",

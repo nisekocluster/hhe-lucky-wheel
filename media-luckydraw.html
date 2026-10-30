@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hilton Niseko Village</title>
+  <style>html, body { margin: 0; height: 100%; background: hsl(220, 55%, 14%); }</style>
+  <script>
+    // /media-luckydraw → media form, version WITH the lucky wheel.
+    // GitHub Pages only serves files, so this page forwards to media.html?lucky
+    // (media.html then shows /media-luckydraw again in the address bar).
+    (function () {
+      var p = new URLSearchParams(location.search);
+      p.set("lucky", "");
+      location.replace("media.html?" + p.toString().replace("lucky=", "lucky"));
+    })();
+  </script>
+</head>
+<body></body>
+</html>

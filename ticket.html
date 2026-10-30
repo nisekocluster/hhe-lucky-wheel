@@ -264,7 +264,7 @@
       <h1 id="gracias-heading">Thank<br>You</h1>
       <p class="nombre" id="nombre-display"></p>
       <p class="gracias-sub" id="gracias-sub"></p>
-      <a class="lucky-btn" id="lucky-btn" href="luckydraw.html">✦ <span id="lucky-label">Try your luck</span></a>
+      <a class="lucky-btn" id="lucky-btn" href="wheel.html">✦ <span id="lucky-label">Try your luck</span></a>
       <p class="lucky-hint" id="lucky-hint"></p>
     </div>
   </div>
@@ -474,7 +474,7 @@
     async function setupLuckyButton() {
       const l = luckyInfo[lang] || luckyInfo.en;
       document.getElementById("lucky-btn").href =
-        "luckydraw.html?" + new URLSearchParams({ nombre, correo, lang }).toString();
+        "wheel.html?" + new URLSearchParams({ nombre, correo, lang }).toString();
       document.getElementById("lucky-label").textContent = l.btn;
       try {
         const res  = await fetch(`${API_URL}/lucky-draw/status?email=${encodeURIComponent(correo)}&nombre=${encodeURIComponent(nombre)}`);

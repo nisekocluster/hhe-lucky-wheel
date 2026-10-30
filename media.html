@@ -556,7 +556,7 @@
       <h1 id="gracias-heading">ありがとう<br>ございます</h1>
       <p class="nombre" id="nombre-display"></p>
       <p class="gracias-sub" id="gracias-sub">ご滞在をお楽しみください。</p>
-      <a class="lucky-btn" id="lucky-btn" href="luckydraw.html">✦ <span id="lucky-label">ルーレットを回す</span></a>
+      <a class="lucky-btn" id="lucky-btn" href="wheel.html">✦ <span id="lucky-label">ルーレットを回す</span></a>
       <p class="lucky-hint" id="lucky-hint"></p>
     </div>
   </div>
@@ -587,6 +587,14 @@
     // Version with the lucky wheel: opened as /media-luckydraw (or media.html?lucky).
     // The plain address (/media) is the version without the wheel.
     const LUCKY_DRAW = /\/media-luckydraw\/?$/.test(location.pathname) || new URLSearchParams(location.search).has("lucky");
+
+    // Arrived via media-luckydraw.html (GitHub Pages): show the short address again
+    if (new URLSearchParams(location.search).has("lucky")) {
+      const q = new URLSearchParams(location.search);
+      q.delete("lucky");
+      const rest = q.toString();
+      history.replaceState(null, "", "media-luckydraw" + (rest ? "?" + rest : "") + location.hash);
+    }
 
     // Página solo en japonés: el idioma que se guarda en la base de datos.
     const LANG = "ja";
@@ -698,11 +706,11 @@
       if (email) setupLuckyButton(fullName, email);
     }
 
-    // ── Botón de la ruleta (luckydraw.html) ───────────────────────────
+    // ── Botón de la ruleta (wheel.html) ──────────────────────────────
     //    Los registros de media tienen su propio contador en el servidor.
     async function setupLuckyButton(fullName, email) {
       const btn = document.getElementById("lucky-btn");
-      btn.href = "luckydraw.html?" + new URLSearchParams({
+      btn.href = "wheel.html?" + new URLSearchParams({
         nombre: fullName, correo: email, lang: LANG, from: "media"
       }).toString();
       try {
