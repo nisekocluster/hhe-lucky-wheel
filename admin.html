@@ -2061,8 +2061,27 @@
       renderTable();
     }
 
+    const SORT_OPTIONS = {
+      "created_at_desc": { key: "created_at", asc: false },
+      "created_at_asc":  { key: "created_at", asc: true  },
+      "last_name_asc":   { key: "last_name",  asc: true  },
+    };
+
     function applySort() {
+      const opt = SORT_OPTIONS[document.getElementById("filter-sort").value];
+      if (opt) {
+        sortKey = opt.key;
+        sortAsc = opt.asc;
+      }
+      document.querySelectorAll("th").forEach(th => th.classList.remove("sorted"));
       renderTable();
+    }
+
+    // Reflect a header-click sort in the dropdown (blank if no option matches)
+    function syncSortSelect() {
+      const match = Object.entries(SORT_OPTIONS)
+        .find(([, o]) => o.key === sortKey && o.asc === sortAsc);
+      document.getElementById("filter-sort").value = match ? match[0] : "";
     }
 
     function clearDateFilter() {
@@ -2078,6 +2097,7 @@
       else { sortKey = key; sortAsc = true; }
       document.querySelectorAll("th").forEach(th => th.classList.remove("sorted"));
       event.target.classList.add("sorted");
+      syncSortSelect();
       renderTable();
     }
 
@@ -2092,19 +2112,6 @@
       dateEl.classList.toggle("active", !!dateVal);
       dateEl.closest(".date-filter-wrap").classList.toggle("has-value", !!dateVal);
       document.getElementById("filter-date-clear").classList.toggle("visible", !!dateVal);
-
-      // Sync sort dropdown with current sort state
-      const sortSelect = document.getElementById("filter-sort");
-      const selectedSort = sortSelect.value;
-      const sortMap = {
-        "created_at_desc": { key: "created_at", asc: false },
-        "created_at_asc":  { key: "created_at", asc: true  },
-        "last_name_asc":   { key: "last_name",   asc: true  },
-      };
-      if (sortMap[selectedSort]) {
-        sortKey = sortMap[selectedSort].key;
-        sortAsc = sortMap[selectedSort].asc;
-      }
 
       let rows = allData.filter(r => {
         if (activeFilter === "used"    && (isNoTicket(r) || !r.ticket_used)) return false;
@@ -2124,6 +2131,11 @@
       rows.sort((a, b) => {
         let va = a[sortKey] ?? "";
         let vb = b[sortKey] ?? "";
+        // Dates arrive as "Sat, 31 Oct 2026 12:34:56 GMT" — compare as time, not text
+        if (sortKey === "created_at") {
+          va = va ? new Date(va).getTime() : 0;
+          vb = vb ? new Date(vb).getTime() : 0;
+        }
         if (typeof va === "number") return sortAsc ? va - vb : vb - va;
         return sortAsc
           ? String(va).localeCompare(String(vb))
